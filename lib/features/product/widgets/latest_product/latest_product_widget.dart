@@ -63,6 +63,7 @@ class LatestProductWidget extends StatelessWidget {
                               CustomImageWidget(
                                 height: ResponsiveHelper.isTab(context) ? 250 : 100,
                                 width: ResponsiveHelper.isTab(context) ? 230 : 100,
+                                fit: BoxFit.contain,
                                 image: '${productModel.thumbnailFullUrl?.path}',
                               ),
 

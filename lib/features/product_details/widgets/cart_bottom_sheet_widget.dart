@@ -43,7 +43,7 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
 
   @override
   void initState() {
-    Provider.of<ProductDetailsController>(context, listen: false).initData(widget.product!, 1, context);
+    Provider.of<ProductDetailsController>(context, listen: false).ensureDataInitialized(widget.product!, widget.product!.minimumOrderQty ?? 1, context);
     Provider.of<ProductDetailsController>(context, listen: false).initDigitalVariationIndex();
     super.initState();
   }
@@ -64,6 +64,7 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
             builder: (ctx, productDetailsController, child) {
               List<String> variationFileType = [];
               List<List<String>> extensions = [];
+              final List<ChoiceOptions> choiceOptions = widget.product?.choiceOptions ?? <ChoiceOptions>[];
               String? variantKey;
               double? digitalVariantPrice;
               String? colorWiseSelectedImage = '';
@@ -84,8 +85,12 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
               String? variantName = (widget.product!.colors != null && widget.product!.colors!.isNotEmpty) ?
               widget.product!.colors![productDetailsController.variantIndex!].name : null;
               List<String> variationList = [];
-              for(int index=0; index < widget.product!.choiceOptions!.length; index++) {
-                variationList.add(widget.product!.choiceOptions![index].options![productDetailsController.variationIndex![index]].trim());
+              for(int index=0; index < choiceOptions.length; index++) {
+                final options = choiceOptions[index].options ?? <String>[];
+                final selectedIndex = (productDetailsController.variationIndex != null && index < productDetailsController.variationIndex!.length) ? productDetailsController.variationIndex![index] : 0;
+                if (options.isNotEmpty) {
+                  variationList.add(options[selectedIndex.clamp(0, options.length - 1).toInt()].trim());
+                }
       
               }
               String variationType = '';
@@ -117,7 +122,7 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
               double? price = widget.product!.unitPrice;
               int? stock = widget.product!.currentStock;
               variationType = variationType.replaceAll(' ', '');
-              for(Variation variation in widget.product!.variation!) {
+              for(Variation variation in (widget.product!.variation ?? <Variation>[])) {
                 if(variation.type == variationType) {
                   price = variation.price;
                   variation = variation;
@@ -431,10 +436,10 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
                         padding: const EdgeInsets.symmetric(horizontal: Dimensions.homePagePadding),
                         child: ListView.builder(
                           shrinkWrap: true,
-                          itemCount: widget.product!.choiceOptions!.length,
+                          itemCount: choiceOptions.length,
                           physics: const NeverScrollableScrollPhysics(),
                           itemBuilder: (ctx, index) {
-                            final choice = widget.product!.choiceOptions![index];
+                            final choice = choiceOptions[index];
 
                             return Column(
                               children: [
@@ -442,7 +447,7 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '${widget.product!.choiceOptions![index].title?.toCapitalized()} ',
+                                      '${choice.title?.toCapitalized() ?? 'Option'}',
                                       style: titilliumRegular.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).textTheme.titleMedium?.color)
                                     ),
                                     const SizedBox(width: Dimensions.paddingSizeExtraSmall),
@@ -452,22 +457,24 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
                                       child:  Wrap(
                                         spacing: 8, // horizontal spacing between options
                                         runSpacing: 8, // vertical spacing between rows
-                                        children: List.generate(choice.options!.length, (i) {
+                                        children: List.generate(choice.options?.length ?? 0, (i) {
                                           final option = choice.options![i].trim();
-                                          final isSelected = productDetailsController.variationIndex![index] == i;
+                                          final isSelected = productDetailsController.variationIndex != null && index < productDetailsController.variationIndex!.length && productDetailsController.variationIndex![index] == i;
 
                                           return InkWell(
-                                            onTap: () => productDetailsController.setCartVariationIndex(1, index, i, context),
+                                            onTap: () => productDetailsController.setCartVariationIndex(widget.product!.minimumOrderQty ?? 1, index, i, context),
                                             child: Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              constraints: const BoxConstraints(minWidth: 46, minHeight: 40),
+                                              alignment: Alignment.center,
+                                              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
                                               decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(50),
+                                                borderRadius: BorderRadius.circular(10),
                                                 color: isSelected
-                                                  ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
-                                                  : Theme.of(context).hintColor.withAlpha(30),
+                                                  ? const Color(0xFFEAF4F1)
+                                                  : Colors.white,
                                                 border: Border.all(
                                                   width: 1,
-                                                  color: isSelected ? Theme.of(context).primaryColor : Colors.transparent,
+                                                  color: isSelected ? const Color(0xFF063D39) : Theme.of(context).hintColor.withValues(alpha: .35),
                                                 ),
                                               ),
                                               child: Text(
@@ -475,7 +482,7 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
                                                 style: titleRegular.copyWith(
                                                   fontSize: Dimensions.fontSizeDefault,
                                                   color: isSelected
-                                                    ? Theme.of(context).primaryColor
+                                                    ? const Color(0xFF063D39)
                                                     : Theme.of(context).textTheme.titleMedium?.color,
                                                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,                                               ),
                                               ),
@@ -487,7 +494,7 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
                                   ]
                                 ),
 
-                                if(((widget.product!.choiceOptions?.length ?? 0) - 1) > index)
+                                if((choiceOptions.length - 1) > index)
                                 SizedBox(height: Dimensions.paddingSizeLarge),
 
                               ],
@@ -840,7 +847,7 @@ class QuantityButton extends StatelessWidget {
 //
 //   @override
 //   void initState() {
-//     Provider.of<ProductDetailsController>(context, listen: false).initData(widget.product!, 1, context);
+//     Provider.of<ProductDetailsController>(context, listen: false).ensureDataInitialized(widget.product!, widget.product!.minimumOrderQty ?? 1, context);
 //     Provider.of<ProductDetailsController>(context, listen: false).initDigitalVariationIndex();
 //     super.initState();
 //   }
@@ -911,7 +918,7 @@ class QuantityButton extends StatelessWidget {
 //             double? price = widget.product!.unitPrice;
 //             int? stock = widget.product!.currentStock;
 //             variationType = variationType.replaceAll(' ', '');
-//             for(Variation variation in widget.product!.variation!) {
+//             for(Variation variation in (widget.product!.variation ?? <Variation>[])) {
 //               if(variation.type == variationType) {
 //                 price = variation.price;
 //                 variation = variation;
@@ -1108,7 +1115,7 @@ class QuantityButton extends StatelessWidget {
 //               Padding(padding: const EdgeInsets.symmetric(horizontal: Dimensions.homePagePadding),
 //                 child: ListView.builder(
 //                   shrinkWrap: true,
-//                   itemCount: widget.product!.choiceOptions!.length,
+//                   itemCount: choiceOptions.length,
 //                   physics: const NeverScrollableScrollPhysics(),
 //                   itemBuilder: (ctx, index) {
 //                     return Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
@@ -1127,7 +1134,7 @@ class QuantityButton extends StatelessWidget {
 //                               itemCount: widget.product!.choiceOptions![index].options!.length,
 //                               itemBuilder: (ctx, i) {
 //                                 return Padding(padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraSmall),
-//                                   child: InkWell(onTap: () => productDetailsController.setCartVariationIndex(1, index, i, context),
+//                                   child: InkWell(onTap: () => productDetailsController.setCartVariationIndex(widget.product!.minimumOrderQty ?? 1, index, i, context),
 //                                     child: Container(decoration: BoxDecoration(borderRadius: BorderRadius.circular(5),
 //                                         color: productDetailsController.variationIndex![index] == i?
 //                                         Theme.of(context).primaryColor: Theme.of(context).colorScheme.onTertiary),

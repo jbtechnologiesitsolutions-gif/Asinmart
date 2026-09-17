@@ -31,7 +31,12 @@ class PaymentMethodBottomSheetWidgetState extends State<PaymentMethodBottomSheet
   @override
   void initState() {
     changeAmountTextController.text = '${Provider.of<CheckoutController>(context, listen: false).cashChangesAmount ?? ''}';
-    if((configModel?.cashOnDelivery ?? false) && !widget.onlyDigital && !checkoutController.isCODChecked) {
+    if((configModel?.cashOnDelivery ?? false) &&
+        !widget.onlyDigital &&
+        !checkoutController.isCODChecked &&
+        !checkoutController.isWalletChecked &&
+        !checkoutController.isOfflineChecked &&
+        checkoutController.paymentMethodIndex == -1) {
       checkoutController.setOfflineChecked('cod', notify: false);
     }
     super.initState();
@@ -294,7 +299,7 @@ bool _isPaymentMethodsAvailable(BuildContext context, List<OfflineMethods>? offl
 
   bool isCashOnDeliveryOn = configModel?.cashOnDelivery ?? false;
   bool isWalletOn = configModel?.walletStatus == 1 && Provider.of<AuthController>(context, listen: false).isLoggedIn();
-  bool isOnlinePaymentMethodsOn = configModel?.paymentMethods?.isNotEmpty ?? false;
+  bool isOnlinePaymentMethodsOn = (configModel?.digitalPayment ?? false) && (configModel?.paymentMethods?.isNotEmpty ?? false);
   bool isOfflinePaymentMethodsOn = offlineMethods?.isNotEmpty ?? false;
 
   return isCashOnDeliveryOn || isWalletOn || isOnlinePaymentMethodsOn || isOfflinePaymentMethodsOn;

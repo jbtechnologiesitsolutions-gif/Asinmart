@@ -1,9 +1,11 @@
 import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/domain/models/cart_model.dart';
+import 'package:flutter_sixvalley_ecommerce/features/cart/controllers/cart_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/checkout/domain/services/checkout_service_interface.dart';
 import 'package:flutter_sixvalley_ecommerce/features/offline_payment/domain/models/offline_payment_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/shipping/controllers/shipping_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/api_checker.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
@@ -258,37 +260,210 @@ class CheckoutController with ChangeNotifier {
     }
   }
 
+  /// The Laravel payment endpoint rejects physical carts with
+  /// `shipping-method / Data not found` when one of the checked cart groups
+  /// does not have a CartShipping row. The cart UI normally creates those
+  /// rows, but a stale cart, Buy Now flow, or a changed shipping configuration
+  /// can leave them missing. Repair a previously-selected/default method before
+  /// opening the payment gateway instead of sending a request that will 403.
+  Future<bool> _ensureOrderWiseShippingReady() async {
+    final BuildContext context = Get.context!;
+    final SplashController splashController = Provider.of<SplashController>(context, listen: false);
+    final CartController cartController = Provider.of<CartController>(context, listen: false);
+    final ShippingController shippingController = Provider.of<ShippingController>(context, listen: false);
+    final config = splashController.configModel;
+
+    if (config == null) return true;
+
+    await cartController.getCartData(context, reload: false);
+    final List<CartModel> physicalChecked = cartController.cartList
+        .where((CartModel item) => (item.isChecked ?? false) && item.productType == 'physical')
+        .toList();
+
+    if (physicalChecked.isEmpty) return true;
+
+    final Set<String> requiredGroups = <String>{};
+    if (config.shippingMethod == 'sellerwise_shipping') {
+      for (final CartModel item in physicalChecked) {
+        if (item.shippingType == 'order_wise' && (item.cartGroupId?.isNotEmpty ?? false)) {
+          requiredGroups.add(item.cartGroupId!);
+        }
+      }
+    } else if (config.inhouseSelectedShippingType == 'order_wise') {
+      for (final CartModel item in physicalChecked) {
+        if (item.cartGroupId?.isNotEmpty ?? false) {
+          requiredGroups.add(item.cartGroupId!);
+        }
+      }
+    }
+
+    if (requiredGroups.isEmpty) return true;
+
+    await shippingController.getChosenShippingMethod(context);
+
+    bool groupExists(String groupId) => shippingController.chosenShippingList.any(
+      (chosen) => chosen.cartGroupId == groupId && chosen.isCheckItemExist == 1,
+    );
+
+    Set<String> missingGroups = requiredGroups.where((String groupId) => !groupExists(groupId)).toSet();
+    if (missingGroups.isEmpty) return true;
+
+    // The cart response itself can still remember a chosen shipping_method_id
+    // even when the CartShipping row was lost. Re-persist that exact selection
+    // first; this fixes stale carts without silently changing the user's choice.
+    for (final String groupId in missingGroups.toList()) {
+      int? rememberedMethodId;
+      for (final CartModel item in physicalChecked) {
+        if (item.cartGroupId == groupId && (item.shippingMethodId ?? 0) > 0) {
+          rememberedMethodId = item.shippingMethodId;
+          break;
+        }
+      }
+      if (rememberedMethodId != null) {
+        await shippingController.saveShippingMethodForGroupSilently(rememberedMethodId, groupId);
+      }
+    }
+
+    await shippingController.getChosenShippingMethod(context);
+    missingGroups = requiredGroups.where((String groupId) => !groupExists(groupId)).toSet();
+    if (missingGroups.isEmpty) return true;
+
+    if (config.shippingMethod != 'sellerwise_shipping') {
+      await shippingController.getAdminShippingMethodList(context);
+      final shippingList = shippingController.shippingList;
+      if (shippingList == null || shippingList.isEmpty || shippingList.first.shippingMethodList == null) {
+        return false;
+      }
+
+      final methods = shippingList.first.shippingMethodList!;
+      if (methods.isEmpty) return false;
+
+      int selectedIndex = shippingList.first.shippingIndex ?? -1;
+      if (selectedIndex < 0 || selectedIndex >= methods.length) {
+        // Auto-select only when there is no ambiguity. If several methods are
+        // configured, the customer must explicitly choose one in the cart.
+        if (methods.length != 1) return false;
+        selectedIndex = 0;
+        shippingController.setSelectedShippingMethod(0, 0);
+      }
+
+      final int? methodId = methods[selectedIndex].id;
+      if (methodId == null) return false;
+
+      for (final String groupId in missingGroups) {
+        final bool saved = await shippingController.saveShippingMethodForGroupSilently(methodId, groupId);
+        if (!saved) return false;
+      }
+    } else {
+      // Rebuild the seller-wise shipping list from the checked cart groups so
+      // we can restore a selected method when the CartShipping row was lost.
+      final Map<String, List<CartModel>> grouped = <String, List<CartModel>>{};
+      for (final CartModel item in physicalChecked) {
+        final String? groupId = item.cartGroupId;
+        if (groupId != null && groupId.isNotEmpty) {
+          grouped.putIfAbsent(groupId, () => <CartModel>[]).add(item);
+        }
+      }
+
+      if (grouped.isNotEmpty) {
+        await shippingController.getShippingMethod(context, grouped.values.toList());
+      }
+
+      for (final String groupId in missingGroups) {
+        final shippingModels = shippingController.shippingList;
+        if (shippingModels == null) return false;
+
+        dynamic shippingModel;
+        for (final model in shippingModels) {
+          if (model.groupId == groupId) {
+            shippingModel = model;
+            break;
+          }
+        }
+
+        if (shippingModel == null || shippingModel.shippingMethodList == null || shippingModel.shippingMethodList.isEmpty) {
+          return false;
+        }
+
+        int selectedIndex = shippingModel.shippingIndex ?? -1;
+        if (selectedIndex < 0 || selectedIndex >= shippingModel.shippingMethodList.length) {
+          if (shippingModel.shippingMethodList.length != 1) return false;
+          selectedIndex = 0;
+        }
+
+        final int? methodId = shippingModel.shippingMethodList[selectedIndex].id;
+        if (methodId == null) return false;
+
+        final bool saved = await shippingController.saveShippingMethodForGroupSilently(methodId, groupId);
+        if (!saved) return false;
+      }
+    }
+
+    await shippingController.getChosenShippingMethod(context);
+    missingGroups = requiredGroups.where((String groupId) => !groupExists(groupId)).toSet();
+    return missingGroups.isEmpty;
+  }
+
   Future<ApiResponseModel> digitalPaymentPlaceOrder({String? orderNote, String? customerId,
     String? addressId, String? billingAddressId,
     String? couponCode,
     String? couponDiscount,
     String? paymentMethod}) async {
-    _isLoading =true;
+    _isLoading = true;
     notifyListeners();
+
+    final bool shippingReady = await _ensureOrderWiseShippingReady();
+    if (!shippingReady) {
+      _isLoading = false;
+      final String message = getTranslated('select_shipping_method', Get.context!) ??
+          'Please select a shipping method before online payment';
+      showCustomSnackBarWidget(message, Get.context!, snackBarType: SnackBarType.warning);
+      notifyListeners();
+      return ApiResponseModel.withError(message);
+    }
 
     ApiResponseModel apiResponse = await checkoutServiceInterface.digitalPaymentPlaceOrder(orderNote, customerId, addressId, billingAddressId, couponCode, couponDiscount, paymentMethod, _isCheckCreateAccount, passwordController.text.trim());
 
-    if (apiResponse.response != null && apiResponse.response?.statusCode == 200) {
+    final int statusCode = apiResponse.response?.statusCode ?? 0;
+    final dynamic responseData = apiResponse.response?.data;
+    final String redirectLink = responseData is Map
+        ? '${responseData['redirect_link'] ?? ''}'.trim()
+        : '';
+    final Uri? redirectUri = Uri.tryParse(redirectLink);
+    final bool hasValidRedirect = redirectUri != null &&
+        (redirectUri.scheme == 'http' || redirectUri.scheme == 'https') &&
+        redirectUri.host.isNotEmpty;
+
+    if (apiResponse.response != null && statusCode >= 200 && statusCode < 300 && hasValidRedirect) {
       _addressIndex = null;
       _billingAddressIndex = null;
       sameAsBilling = false;
       _isLoading = false;
 
       RouterHelper.getDigitalPaymentScreenRoute(
-        url: apiResponse.response?.data['redirect_link'] ?? '',
+        url: redirectLink,
         fromWallet: false,
         action: RouteAction.pushReplacement,
       );
-
-    } else if(apiResponse.error == 'Already registered ') {
-      _isLoading = false;
-      showCustomSnackBarWidget(getTranslated(apiResponse.error, Get.context!), Get.context!, snackBarType: SnackBarType.warning);
-    } else if(apiResponse.response != null && apiResponse.response!.statusCode == 403) {
-      _isLoading = false;
-      showCustomSnackBarWidget(getTranslated(apiResponse.error, Get.context!), Get.context!, snackBarType: SnackBarType.error);
     } else {
       _isLoading = false;
-      showCustomSnackBarWidget(getTranslated('payment_method_not_properly_configured', Get.context!), Get.context!, snackBarType: SnackBarType.error);
+      String errorMessage = apiResponse.error?.toString().trim() ?? '';
+      if (errorMessage.toLowerCase() == 'data not found') {
+        errorMessage = getTranslated('select_shipping_method', Get.context!) ??
+            'Please select a shipping method before online payment';
+      } else if (apiResponse.response != null && statusCode >= 200 && statusCode < 300 && !hasValidRedirect) {
+        errorMessage = 'Payment gateway did not return a valid redirect link';
+      }
+
+      showCustomSnackBarWidget(
+        errorMessage.isNotEmpty
+            ? errorMessage
+            : getTranslated('payment_method_not_properly_configured', Get.context!),
+        Get.context!,
+        snackBarType: apiResponse.error == 'Already registered '
+            ? SnackBarType.warning
+            : SnackBarType.error,
+      );
     }
     notifyListeners();
     return apiResponse;

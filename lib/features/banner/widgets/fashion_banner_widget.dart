@@ -1,123 +1,115 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_image_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/banner/controllers/banner_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/banner/widgets/banner_shimmer.dart';
-import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
-import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_button_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_image_widget.dart';
 import 'package:provider/provider.dart';
-
-
 
 class FashionBannersWidget extends StatelessWidget {
   const FashionBannersWidget({super.key});
 
+  static const Color _deepGreen = Color(0xFF00382F);
+
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-        Consumer<BannerController>(
-          builder: (context, bannerController, child) {
+    return Consumer<BannerController>(
+      builder: (context, bannerController, child) {
+        final banners = bannerController.mainBannerList;
+        final width = MediaQuery.sizeOf(context).width;
 
-            double width = MediaQuery.of(context).size.width;
-            return Stack(children: [
-              bannerController.mainBannerList != null ? bannerController.mainBannerList!.isNotEmpty ?
-              Column(children: [
-                SizedBox(height: width * 0.40, width: width,
-                  child: CarouselSlider.builder(
-                    options: CarouselOptions(
-                      aspectRatio: 2/1,
-                      viewportFraction: 0.8,
-                      autoPlay: true,
-                      enlargeFactor: .2,
-                      pauseAutoPlayOnTouch: true,
-                      pauseAutoPlayOnManualNavigate: true,
-                      pauseAutoPlayInFiniteScroll: true,
-                      enlargeCenterPage: true,
-                      disableCenter: true,
-                      onPageChanged: (index, reason) {
-                        Provider.of<BannerController>(context, listen: false).setCurrentIndex(index);
+        if (banners == null) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            child: BannerShimmer(),
+          );
+        }
+
+        if (banners.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final double bannerHeight = (width - 20) * .62;
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(0, 6, 0, 7),
+          child: Column(
+            children: [
+              SizedBox(
+                height: bannerHeight,
+                width: width,
+                child: CarouselSlider.builder(
+                  options: CarouselOptions(
+                    height: bannerHeight,
+                    viewportFraction: .93,
+                    autoPlay: banners.length > 1,
+                    autoPlayInterval: const Duration(seconds: 5),
+                    autoPlayAnimationDuration: const Duration(milliseconds: 650),
+                    pauseAutoPlayOnTouch: true,
+                    enlargeCenterPage: true,
+                    enlargeFactor: .045,
+                    onPageChanged: (index, reason) => bannerController.setCurrentIndex(index),
+                  ),
+                  itemCount: banners.length,
+                  itemBuilder: (context, index, _) {
+                    final banner = banners[index];
+                    return InkWell(
+                      borderRadius: BorderRadius.circular(13),
+                      onTap: () {
+                        bannerController.clickBannerRedirect(
+                          context,
+                          banner.resourceId,
+                          banner.resourceType == 'product' ? banner.product : null,
+                          banner.resourceType,
+                        );
                       },
-                    ),
-                    itemCount: bannerController.mainBannerList!.isEmpty ? 1 : bannerController.mainBannerList?.length,
-                    itemBuilder: (context, index, _) {
-                      String colorString = bannerController.mainBannerList![index].backgroundColor != null?
-                      '0xff${ bannerController.mainBannerList![index].backgroundColor!.substring(1, 7)}'  : '0xFF424242';
-
-                      return
-
-                        ClipRRect(borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall),
-                        child: Container(decoration: BoxDecoration(borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall),
-                            color: Color(int.parse(colorString))),
-                            child: Row(crossAxisAlignment: CrossAxisAlignment.center,mainAxisAlignment: MainAxisAlignment.center, children: [
-                            SizedBox(width : MediaQuery.of(context).size.width/2.5,height : MediaQuery.of(context).size.width/2.5,
-                              child: CustomImageWidget(image: '${bannerController.mainBannerList![index].photoFullUrl?.path}'),
-                            ),
-                            Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                                child: Column(mainAxisSize: MainAxisSize.min,children: [
-                                    Text(bannerController.mainBannerList![index].title??'',maxLines: 1, overflow: TextOverflow.ellipsis,
-                                        style: textBold.copyWith(color:  Theme.of(context).colorScheme.secondaryContainer, fontSize: Dimensions.fontSizeLarge)),
-                                    Padding(padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
-                                      child: Text(bannerController.mainBannerList![index].subTitle??'',textAlign: TextAlign.center,
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 2,style: textRegular.copyWith(color:  Theme.of(context).colorScheme.secondaryContainer),),),
-                                    SizedBox(height: 30, width: 100,child: CustomButton(backgroundColor:  Theme.of(context).colorScheme.secondaryContainer,
-                                            textColor: Colors.black45,
-                                        onTap: () {
-                                          bannerController.clickBannerRedirect(context,
-                                              bannerController.mainBannerList![index].resourceId,
-                                              bannerController.mainBannerList![index].resourceType =='product'?
-                                              bannerController.mainBannerList![index].product : null,
-                                              bannerController.mainBannerList![index].resourceType);
-                                        },
-                                        fontSize: Dimensions.fontSizeDefault,
-                                        radius: 5,
-                                        buttonText: bannerController.mainBannerList![index].buttonText??'Check Now'))
-                                  ],
-                                ),
-                              ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: _deepGreen,
+                          borderRadius: BorderRadius.circular(13),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: .08),
+                              blurRadius: 13,
+                              offset: const Offset(0, 6),
                             ),
                           ],
-                        )
                         ),
-                      );
-
-
-                    },
-                  ),
+                        clipBehavior: Clip.antiAlias,
+                        child: CustomImageWidget(
+                          image: '${banner.photoFullUrl?.path}',
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              if (banners.length > 1) ...[
+                const SizedBox(height: 7),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(banners.length, (index) {
+                    final selected = index == bannerController.currentIndex;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 220),
+                      height: 5,
+                      width: selected ? 21 : 5,
+                      margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                      decoration: BoxDecoration(
+                        color: selected ? _deepGreen : _deepGreen.withValues(alpha: .18),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    );
+                  }),
                 ),
               ],
-              ) : const SizedBox() : const BannerShimmer(),
-
-              if( bannerController.mainBannerList != null &&  bannerController.mainBannerList!.isNotEmpty)
-                Positioned(bottom: 20, left: 0, right: 0,
-                  child: Row(mainAxisAlignment: MainAxisAlignment.center,
-                    children: bannerController.mainBannerList!.map((banner) {
-                      int index = bannerController.mainBannerList!.indexOf(banner);
-                      return index == bannerController.currentIndex ? Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5,vertical: 2),
-                        margin: const EdgeInsets.symmetric(horizontal: 6.0),
-                        decoration: BoxDecoration(color:  Theme.of(context).primaryColor ,
-                          borderRadius: BorderRadius.circular(10)),
-                        child:  Text("${bannerController.mainBannerList!.indexOf(banner) + 1}/ ${bannerController.mainBannerList!.length}",
-                          style: const TextStyle(color: Colors.white,fontSize: 12))):Container(height: 7, width: 7,
-                        margin:  const EdgeInsets.symmetric(horizontal: 5.0),
-                        decoration:  BoxDecoration(color:  Theme.of(context).primaryColor.withValues(alpha:0.2),
-                          shape: BoxShape.circle));
-                    }).toList(),
-                  ),
-                ),
-
             ],
-            );
-          },
-        ),
-
-        const SizedBox(height: 5),
-      ],
+          ),
+        );
+      },
     );
   }
-
-
 }
-

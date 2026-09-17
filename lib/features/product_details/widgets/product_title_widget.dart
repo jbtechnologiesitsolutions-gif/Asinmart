@@ -183,91 +183,109 @@ class ProductTitleWidget extends StatelessWidget {
               const SizedBox(height: Dimensions.paddingSizeSmall),
             ],
 
-            /// Available color
-            productModel!.colors != null && productModel!.colors!.isNotEmpty ?
-            Row(children: [
-
-              Text('${getTranslated('color', context)} : ', style: titilliumRegular.copyWith(
+            /// Available colour - selectable directly on the PDP.
+            if(productModel!.colors != null && productModel!.colors!.isNotEmpty) ...[
+              Text('${getTranslated('color', context)} :', style: titilliumRegular.copyWith(
                 fontSize: Dimensions.fontSizeLarge,
                 color: Theme.of(context).textTheme.bodyLarge?.color,
               )),
-              const SizedBox(width: Dimensions.paddingSizeExtraSmall),
-
-              Expanded(child: SizedBox(height: Dimensions.paddingSizeLarge, child: ListView.separated(
-                itemCount: productModel!.colors!.length,
-                scrollDirection: Axis.horizontal,
-                itemBuilder: (context, index) {
-                  return Center(child: Container(
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall)),
-                      child: Container(
-                        width: Dimensions.marginSizeAuthSmall,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: ColorHelper.hexCodeToColor(productModel?.colors?[index].code),
-                          borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraExtraSmall)
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 9,
+                runSpacing: 9,
+                children: List.generate(productModel!.colors!.length, (index) {
+                  final selected = details.variantIndex == index;
+                  return InkWell(
+                    onTap: () => details.setCartVariantIndex(productModel!.minimumOrderQty ?? 1, index, context),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      width: 42,
+                      height: 42,
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: selected ? const Color(0xFF063D39) : Theme.of(context).hintColor.withValues(alpha: .28),
+                          width: selected ? 2 : 1,
                         ),
                       ),
-                  ));
-                },
-                separatorBuilder: (BuildContext context, int index) => const SizedBox(width: Dimensions.paddingSizeDefaultAddress),
-              ))),
-            ]) : const SizedBox(),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: ColorHelper.hexCodeToColor(productModel?.colors?[index].code),
+                          borderRadius: BorderRadius.circular(7),
+                        ),
+                        child: selected ? const Icon(Icons.check_rounded, color: Colors.white, size: 18) : null,
+                      ),
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(height: Dimensions.paddingSizeDefault),
+            ],
 
-            productModel!.colors != null &&  productModel!.colors!.isNotEmpty ?
-            const SizedBox(height: Dimensions.paddingSizeSmall) : const SizedBox(),
-
-            productModel!.choiceOptions != null && productModel!.choiceOptions!.isNotEmpty ?
-            ListView.builder(
-              shrinkWrap: true,
-              itemCount: productModel!.choiceOptions!.length,
-              physics: const NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-
-                    Text('${productModel!.choiceOptions![index].title?.toCapitalized()} : ', style: titilliumRegular.copyWith(
-                      fontSize: Dimensions.fontSizeLarge,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                    )),
-                    const SizedBox(width: Dimensions.paddingSizeExtraSmall),
-
-                    Expanded(child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
-                      child: SizedBox(height: Dimensions.paddingSizeExtraLarge, child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: productModel!.choiceOptions![index].options!.length,
-                        itemBuilder: (context, i) {
-                          return Container(
-                            alignment: Alignment.center,
-                            padding: const EdgeInsets.symmetric(
-                              vertical: Dimensions.paddingSizeExtraExtraSmall,
-                              horizontal: Dimensions.paddingSizeSmall
-                            ),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).hintColor.withValues(alpha: 0.125),
-                              borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraExtraSmall),
-                            ),
-                            child: Text(
-                                productModel!.choiceOptions![index].options![i].trim(),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                                style: textRegular.copyWith(
-                                  fontSize: Dimensions.fontSizeSmall,
-                                  color: Theme.of(context).textTheme.bodyLarge?.color,
+            /// Size / variation options - selectable on the PDP and preserved
+            /// when Add to Cart opens the configuration sheet.
+            if(productModel!.choiceOptions != null && productModel!.choiceOptions!.isNotEmpty)
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: productModel!.choiceOptions!.length,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  final choice = productModel!.choiceOptions![index];
+                  final options = choice.options ?? <String>[];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${choice.title?.toCapitalized() ?? 'Option'} :',
+                          style: titilliumRegular.copyWith(
+                            fontSize: Dimensions.fontSizeLarge,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: List.generate(options.length, (i) {
+                            final selected = details.variationIndex != null &&
+                                index < details.variationIndex!.length &&
+                                details.variationIndex![index] == i;
+                            return InkWell(
+                              onTap: () => details.setCartVariationIndex(productModel!.minimumOrderQty ?? 1, index, i, context),
+                              borderRadius: BorderRadius.circular(10),
+                              child: Container(
+                                constraints: const BoxConstraints(minWidth: 48, minHeight: 40),
+                                padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: selected ? const Color(0xFFEAF4F1) : Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: selected ? const Color(0xFF063D39) : Theme.of(context).hintColor.withValues(alpha: .30),
+                                  ),
+                                ),
+                                child: Text(
+                                  options[i].trim(),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: textMedium.copyWith(
+                                    fontSize: Dimensions.fontSizeDefault,
+                                    color: selected ? const Color(0xFF063D39) : Theme.of(context).textTheme.bodyLarge?.color,
+                                  ),
                                 ),
                               ),
-                          );
-                        },
-                        separatorBuilder: (BuildContext context, int index) => const SizedBox(width: Dimensions.paddingSizeDefaultAddress),
-                      )),
-                    )),
-
-                  ],
-                );
-              },
-            ) : const SizedBox(),
+                            );
+                          }),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
           ]);
         },
       ),

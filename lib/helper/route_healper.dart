@@ -965,7 +965,7 @@ class RouterHelper {
       GoRoute(path: dashboardScreen, builder: (context, state) {
         String? page =  state.uri.queryParameters['page'];
         return DashBoardScreen(
-          pageIndex: page == 'home' ? 0 : page == 'inbox' ? 1 : page == 'cart' ? 2 : page == 'orders' ? 3 : page == 'more' ? 4 : 0,
+          pageIndex: page == 'home' ? 0 : page == 'category' ? 1 : page == 'cart' ? 2 : page == 'orders' ? 3 : page == 'more' ? 4 : 0,
         );
       }),
       GoRoute(path: loginScreen, builder: (context, state) {

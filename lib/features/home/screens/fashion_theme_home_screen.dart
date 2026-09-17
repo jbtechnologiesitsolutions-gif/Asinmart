@@ -15,6 +15,7 @@ import 'package:flutter_sixvalley_ecommerce/features/deal/widgets/featured_deal_
 import 'package:flutter_sixvalley_ecommerce/features/deal/widgets/flash_deals_list_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/shimmers/flash_deal_shimmer.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/announcement_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/features/home/widgets/marketplace_home_header.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/aster_theme/find_what_you_need_shimmer.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/aster_theme/more_store_list_view_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/fashion_theme/most_demanded_product_widget.dart';
@@ -146,7 +147,9 @@ class _FashionThemeHomePageState extends State<FashionThemeHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(resizeToAvoidBottomInset: false,
+    return Scaffold(
+      backgroundColor: const Color(0xFFFBFBF8),
+      resizeToAvoidBottomInset: false,
       body: SafeArea(child: RefreshIndicator(
         onRefresh: () async {
           await FashionThemeHomePage.loadData( true);
@@ -155,13 +158,13 @@ class _FashionThemeHomePageState extends State<FashionThemeHomePage> {
         child: CustomScrollView(
           controller: _scrollController,
           slivers: [
-            SliverAppBar(
-                floating: true,
-                elevation: 0,
-                centerTitle: false,
-                automaticallyImplyLeading: false,
-                backgroundColor: Theme.of(context).highlightColor,
-                title: Image.asset(Images.logoWithNameImage, height: 35)),
+            const SliverToBoxAdapter(
+              child: MarketplaceHomeHeader(),
+            ),
+
+            const SliverToBoxAdapter(
+              child: HomeQuickCategoryStrip(),
+            ),
 
             SliverToBoxAdapter(child: Provider.of<SplashController>(context, listen: false).configModel!.announcement!.status == '1'?
             Consumer<SplashController>(
@@ -171,20 +174,10 @@ class _FashionThemeHomePageState extends State<FashionThemeHomePage> {
               },):const SizedBox(),),
 
 
-            SliverPersistentHeader(pinned: true, delegate: SliverDelegate(
-              child: InkWell(
-                onTap: ()=> RouterHelper.getSearchRoute(action: RouteAction.push),
-                child: const Hero(tag: 'search', child: Material(child: SearchHomePageWidget())),
-              ),
-            )),
-
             SliverToBoxAdapter(
               child: Column(children: [
                 const FashionBannersWidget(),
                 const SizedBox(height: Dimensions.paddingSizeDefault),
-
-                const CategoryListWidget(isHomePage: true),
-                const SizedBox(height: Dimensions.paddingSizeSmall),
 
                 Consumer<FlashDealController>(
                     builder: (context, megaDeal, child) {
@@ -414,6 +407,74 @@ class _FashionThemeHomePageState extends State<FashionThemeHomePage> {
   }
 }
 
+
+class _HomeHeaderAction extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  final int badgeCount;
+
+  const _HomeHeaderAction({
+    required this.icon,
+    required this.onTap,
+    this.badgeCount = 0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 6),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: SizedBox(
+          width: 42,
+          height: 42,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Center(
+                child: Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE7EAE6)),
+                  ),
+                  child: Icon(icon, color: const Color(0xFF0E3121), size: 20),
+                ),
+              ),
+              if (badgeCount > 0)
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: Container(
+                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFB68A22),
+                      borderRadius: BorderRadius.circular(99),
+                      border: Border.all(color: Colors.white, width: 1.5),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      badgeCount > 99 ? '99+' : '$badgeCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _AllProductTypeTabWidget extends StatelessWidget {
   const _AllProductTypeTabWidget({
     required this.productTypeList,
@@ -424,7 +485,7 @@ class _AllProductTypeTabWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(color: Theme.of(context).primaryColor.withValues(alpha:.125)),
+      decoration: const BoxDecoration(color: Color(0xFFF8F7FB)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Padding(
           padding: const EdgeInsets.only(top: Dimensions.homePagePadding, bottom: Dimensions.paddingSizeSmall),

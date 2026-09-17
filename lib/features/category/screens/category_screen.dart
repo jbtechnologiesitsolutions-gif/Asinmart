@@ -20,15 +20,24 @@ class CategoryScreen extends StatefulWidget {
 class _CategoryScreenState extends State<CategoryScreen> {
   @override
   void initState() {
-    Provider.of<ProductController>(context, listen: false).initBrandOrCategoryProductList(
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initializeCategory());
+  }
+
+  Future<void> _initializeCategory() async {
+    final categoryController = Provider.of<CategoryController>(context, listen: false);
+    if (categoryController.categoryList.isEmpty) {
+      await categoryController.getCategoryList(false);
+    }
+    if (!mounted || categoryController.categoryList.isEmpty) return;
+
+    categoryController.onChangeSelectedIndex(0, isUpdate: false);
+    await Provider.of<ProductController>(context, listen: false).initBrandOrCategoryProductList(
       isBrand: false,
-      id: Provider.of<CategoryController>(context, listen: false).categoryList[0].id,
+      id: categoryController.categoryList.first.id,
       offset: 1,
       isUpdate: false,
     );
-
-    Provider.of<CategoryController>(context, listen: false).onChangeSelectedIndex(0, isUpdate: false);
-    super.initState();
   }
 
   @override
@@ -37,7 +46,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
       appBar: CustomAppBar(title: getTranslated('CATEGORY', context)),
       body: Consumer<CategoryController>(
         builder: (context, categoryProvider, child) {
-          return categoryProvider.categoryList.isNotEmpty ?
+          return categoryProvider.categoryList.isNotEmpty && categoryProvider.categorySelectedIndex != null ?
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
             Expanded(flex: 3, child: Container(

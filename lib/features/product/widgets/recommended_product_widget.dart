@@ -27,7 +27,7 @@ class RecommendedProductWidget extends StatelessWidget {
     final bool isLtr  = Provider.of<LocalizationController>(context, listen: false).isLtr;
     return Container(
       padding: const EdgeInsets.only(top: Dimensions.paddingSizeSmall, bottom: Dimensions.paddingSizeDefault),
-      color: Theme.of(context).colorScheme.onTertiary,
+      color: const Color(0xFFF8F7FB),
       child: Column(children: [
         Consumer<ProductController>(
           builder: (context, recommended, child) {
@@ -97,6 +97,7 @@ class RecommendedProductWidget extends StatelessWidget {
                                               CustomImageWidget(
                                                 height: ResponsiveHelper.isTab(context) ? 250 : 100,
                                                 width: ResponsiveHelper.isTab(context) ? 230 : 100,
+                                                fit: BoxFit.contain,
                                                 image: '${recommended.recommendedProduct?.thumbnailFullUrl?.path}',
                                               ),
 

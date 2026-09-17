@@ -2,6 +2,7 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_sixvalley_ecommerce/data/datasource/remote/dio/dio_client.dart';
 import 'package:flutter_sixvalley_ecommerce/data/datasource/remote/exception/api_error_handler.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
@@ -127,26 +128,46 @@ class CheckoutRepository implements CheckoutRepositoryInterface{
 
     try {
       int isCheckAccount = isCheckCreateAccount! ? 1: 0;
-      final response = await dioClient!.post(AppConstants.digitalPayment, data: {
+      final AuthController authController = Provider.of<AuthController>(Get.context!, listen: false);
+      final bool isGuest = !authController.isLoggedIn();
+      final String? guestId = authController.getGuestToken();
+
+      final Map<String, dynamic> paymentData = {
         "order_note": orderNote,
-        "customer_id":  customerId,
+        "customer_id": customerId,
         "address_id": addressId,
         "billing_address_id": billingAddressId,
         "coupon_code": couponCode,
         "coupon_discount": couponDiscount,
-        "payment_platform" : "app",
-        "payment_method" : paymentMethod,
-        "callback" : null,
-        "payment_request_from" : "app",
-        'guest_id' : Provider.of<AuthController>(Get.context!, listen: false).getGuestToken(),
-        'is_guest': !Provider.of<AuthController>(Get.context!, listen: false).isLoggedIn(),
-        'is_check_create_account' : isCheckAccount.toString(),
-        'password' : password,
-      });
+        "payment_platform": "app",
+        "payment_method": paymentMethod,
+        "callback": null,
+        "payment_request_from": "app",
+        'guest_id': guestId,
+        // Send the same 0/1 form used by the 6Valley backend and the other
+        // checkout APIs. This avoids boolean/string ambiguity in Laravel.
+        'is_guest': isGuest ? 1 : 0,
+        'is_check_create_account': isCheckAccount,
+        'password': password,
+      };
+
+      if (kDebugMode) {
+        final Map<String, dynamic> safeLog = Map<String, dynamic>.from(paymentData)
+          ..remove('password');
+        debugPrint('DIGITAL PAYMENT REQUEST => $safeLog');
+      }
+
+      final response = await dioClient!.post(
+        AppConstants.digitalPayment,
+        data: paymentData,
+      );
       return ApiResponseModel.withSuccess(response);
     } catch (e) {
-      final error = e as DioException;
-      return ApiResponseModel.withError( ApiErrorHandler.getMessage(e), responseValue: (error.response) );
+      final Response<dynamic>? response = e is DioException ? e.response : null;
+      return ApiResponseModel.withError(
+        ApiErrorHandler.getMessage(e),
+        responseValue: response,
+      );
     }
   }
 

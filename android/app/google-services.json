@@ -169,7 +169,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:76471554747:android:0ac224c482bca2536d0f9e",
         "android_client_info": {
-          "package_name": "com.sixamtech.sixvalley"
+          "package_name": "com.asinmart.app"
         }
       },
       "oauth_client": [
@@ -177,7 +177,7 @@
           "client_id": "76471554747-9t5onufd1l14s3rdmcg9mqkr5mbhqqg8.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.sixamtech.sixvalley",
+            "package_name": "com.asinmart.app",
             "certificate_hash": "92b9a66a431eaae8e20daf0a1015a9e3dac94eb2"
           }
         },
@@ -185,7 +185,7 @@
           "client_id": "76471554747-jplm6m9ca6ciakrcg1j7cr13q2j2vo1m.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.sixamtech.sixvalley",
+            "package_name": "com.asinmart.app",
             "certificate_hash": "cd0ac511cd390e4642666eb8571050d5fe8aa319"
           }
         },
@@ -221,7 +221,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:76471554747:android:c47b355578169ce66d0f9e",
         "android_client_info": {
-          "package_name": "com.sixamtech.sixvalley.seller"
+          "package_name": "com.asinmart.app.seller"
         }
       },
       "oauth_client": [

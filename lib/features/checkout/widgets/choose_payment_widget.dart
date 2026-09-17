@@ -66,22 +66,34 @@ class ChoosePaymentWidget extends StatelessWidget {
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       SizedBox(height: Dimensions.paddingSizeDefault),
 
-                      (orderProvider.paymentMethodIndex != -1)?
-                      Row(children: [
-                        SizedBox(
-                          width: 40,
-                          child: CustomImageWidget(
-                            image: '${configProvider.configModel?.paymentMethodImagePath}/${configProvider.configModel!.paymentMethods![orderProvider.paymentMethodIndex].additionalDatas!.gatewayImage??''}',
+                      (orderProvider.paymentMethodIndex >= 0 &&
+                        orderProvider.paymentMethodIndex < (configProvider.configModel?.paymentMethods?.length ?? 0)) ?
+                      Builder(builder: (context) {
+                        final paymentMethod = configProvider.configModel?.paymentMethods?[orderProvider.paymentMethodIndex];
+                        final gatewayImage = paymentMethod?.additionalDatas?.gatewayImage ?? '';
+                        final gatewayTitle = paymentMethod?.additionalDatas?.gatewayTitle ?? paymentMethod?.keyName ?? '';
+                        return Row(children: [
+                          SizedBox(
+                            width: 40,
+                            child: CustomImageWidget(
+                              image: gatewayImage.isEmpty
+                                ? ''
+                                : '${configProvider.configModel?.paymentMethodImagePath}/$gatewayImage',
+                            ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
-                          child: Text(
-                            configProvider.configModel!.paymentMethods![orderProvider.paymentMethodIndex].additionalDatas!.gatewayTitle??'',
-                            style: textRegular.copyWith(color: Theme.of(context).textTheme.bodyLarge?.color),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
+                              child: Text(
+                                gatewayTitle,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: textRegular.copyWith(color: Theme.of(context).textTheme.bodyLarge?.color),
+                              ),
+                            ),
                           ),
-                        ),
-                      ],) : orderProvider.isCODChecked?
+                        ]);
+                      }) : orderProvider.isCODChecked?
                       Text(getTranslated('cash_on_delivery', context)??'', style: textRegular.copyWith(color: Theme.of(context).textTheme.bodyLarge?.color)) :orderProvider.isOfflineChecked?
                       Text(getTranslated('offline_payment', context)??'', style: textRegular.copyWith(color: Theme.of(context).textTheme.bodyLarge?.color)) :orderProvider.isWalletChecked?
                       Text(getTranslated('wallet_payment', context)??'', style: textRegular.copyWith(color: Theme.of(context).textTheme.bodyLarge?.color)

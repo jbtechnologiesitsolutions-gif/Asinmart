@@ -95,13 +95,15 @@ class CartController extends ChangeNotifier {
 
 
 
-  Future<ApiResponseModel> addToCartAPI(CartModelBody cart, BuildContext context, List<ChoiceOptions> choices, List<int>? variationIndexes, {int buyNow = 0, int? shippingMethodExist, int? shippingMethodId}) async {
+  Future<ApiResponseModel> addToCartAPI(CartModelBody cart, BuildContext context, List<ChoiceOptions> choices, List<int>? variationIndexes, {int buyNow = 0, int? shippingMethodExist, int? shippingMethodId, bool popOnSuccess = true}) async {
     _addToCartLoading = true;
     notifyListeners();
     ApiResponseModel apiResponse = await cartServiceInterface!.addToCartListData(cart, choices, variationIndexes, buyNow, shippingMethodExist, shippingMethodId);
     _addToCartLoading = false;
     if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
-      Navigator.of(Get.context!).pop();
+      if (popOnSuccess && Navigator.of(Get.context!).canPop()) {
+        Navigator.of(Get.context!).pop();
+      }
       _addToCartLoading = false;
       showCustomSnackBarWidget(apiResponse.response!.data['message'], Get.context!, snackBarType: SnackBarType.success);
       getCartData(Get.context!);

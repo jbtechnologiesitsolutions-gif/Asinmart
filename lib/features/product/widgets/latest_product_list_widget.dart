@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/product_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/slider_product_shimmer_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/title_row_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/controllers/product_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/domain/models/product_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/enums/product_type.dart';
-import 'package:flutter_sixvalley_ecommerce/features/product/widgets/latest_product/latest_product_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/helper/responsive_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
-import 'package:flutter_sixvalley_ecommerce/common/basewidget/title_row_widget.dart';
 import 'package:provider/provider.dart';
-
 
 class LatestProductListWidget extends StatelessWidget {
   const LatestProductListWidget({super.key});
@@ -17,58 +17,50 @@ class LatestProductListWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Selector<ProductController, ProductModel?>(
-      selector: (ctx, productController)=> productController.latestProductModel,
+      selector: (ctx, productController) => productController.latestProductModel,
       builder: (context, latestProductModel, child) {
+        final products = latestProductModel?.products ?? [];
+        if (products.isEmpty) {
+          return latestProductModel == null ? const SliderProductShimmerWidget() : const SizedBox.shrink();
+        }
 
-        final size = MediaQuery.of(context).size;
-
-        return (latestProductModel?.products?.isNotEmpty ?? false)  ? Container(
-          padding: EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
-          color: Theme.of(context).cardColor,
-          child: Column( children: [
-            TitleRowWidget(
-              title: getTranslated('latest_products', context),
-              onTap: () => RouterHelper.getViewAllProductScreenRoute(productType: ProductType.latestProduct, action: RouteAction.push),
-            ),
-
-            const SizedBox(height: Dimensions.paddingSizeSmall),
-
-
-
-            SizedBox(
-              height: (latestProductModel?.products?.length ?? 0) > 5 ? size.height * 0.35 : size.height * 0.16,
-              child: GridView.builder(
-                clipBehavior: Clip.none,
-                itemCount: latestProductModel?.products?.length,
-                scrollDirection: Axis.horizontal,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: (latestProductModel?.products?.length ?? 0) > 5 ? 2 : 1,
-                  crossAxisSpacing: Dimensions.paddingSizeExtraSmall,
-                  mainAxisSpacing: Dimensions.paddingSizeExtraSmall,
-                  childAspectRatio: 0.40,
+        final bool isTablet = ResponsiveHelper.isTab(context);
+        return Container(
+          color: const Color(0xFFF8FAFB),
+          padding: const EdgeInsets.only(top: 8, bottom: 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TitleRowWidget(
+                title: getTranslated('latest_products', context),
+                onTap: () => RouterHelper.getViewAllProductScreenRoute(
+                  productType: ProductType.latestProduct,
+                  action: RouteAction.push,
                 ),
-                itemBuilder: (context, index) {
-
-                  final int crossAxisCount = (latestProductModel?.products?.length ?? 0) > 5 ? 2 : 1;
-
-                  final columnIndex = index ~/ crossAxisCount;
-
-                  final lastColumnIndex = ((latestProductModel?.products?.length ?? 0) - 1) ~/ crossAxisCount;
-
-                  final isLastColumn = columnIndex == lastColumnIndex;
-
-                  return SizedBox(
-                    height: 100,
-                    child: Padding(
-                      padding: EdgeInsets.only(right: isLastColumn ? Dimensions.paddingSizeDefault : 0),
-                      child: LatestProductWidget(productModel: latestProductModel!.products![index],)
-                    ),
-                  );
-                },
               ),
-            ),
-          ]),
-        ) : latestProductModel == null ? const SliderProductShimmerWidget() : const SizedBox();
+              const SizedBox(height: 8),
+              SizedBox(
+                height: isTablet ? 390 : 330,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: Dimensions.homePagePadding),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: products.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    return SizedBox(
+                      width: isTablet ? 220 : 166,
+                      child: ProductWidget(
+                        productModel: products[index],
+                        productNameLine: 2,
+                        margin: 0,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
       },
     );
   }

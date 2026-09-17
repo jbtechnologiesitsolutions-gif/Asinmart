@@ -14,7 +14,7 @@ import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_c
 import 'package:flutter_sixvalley_ecommerce/main.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/features/dashboard/widgets/app_exit_card_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/features/chat/screens/inbox_screen.dart';
+import 'package:flutter_sixvalley_ecommerce/features/category/screens/category_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/screens/aster_theme_home_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/screens/fashion_theme_home_screen.dart';
@@ -63,29 +63,22 @@ class DashBoardScreenState extends State<DashBoardScreen> {
       _pageIndex = widget.pageIndex!;
     }
 
-    if(splashController.configModel?.activeTheme == "default") {
-
-      HomePage.loadData(false);
-
-    }else if(splashController.configModel?.activeTheme == "theme_aster") {
-      AsterThemeHomeScreen.loadData(false);
-    }else{
-      FashionThemeHomePage.loadData(false);
-    }
+    // The app now uses one custom AsinMart marketplace home UI across every
+    // backend theme selection. This keeps all existing APIs/controllers intact
+    // while preventing the admin theme flag from swapping the requested home UI.
+    HomePage.loadData(false);
 
       _screens = [
         NavigationModel(
           name: 'home',
           icon: Images.homeImage,
-          screen: (splashController.configModel?.activeTheme == "default")
-            ? const HomePage() : (splashController.configModel?.activeTheme == "theme_aster")
-            ? const AsterThemeHomeScreen(): const HomePage(),
+          screen: const HomePage(),
         ),
 
-        NavigationModel(name: 'inbox', icon: Images.messageImage, screen: InboxScreen(fromDashboard: true)),
+        NavigationModel(name: 'CATEGORY', icon: Images.category, screen: const CategoryScreen()),
         NavigationModel(name: 'cart', icon: Images.cartArrowDownImage, screen: const CartScreen(showBackButton: false, fromDashboard: true), showCartIcon: true),
-        NavigationModel(name: 'orders', icon: Images.shoppingImage, screen:  const OrderScreen(isBacButtonExist: false, fromDashboard: true)),
-        NavigationModel(name: 'more', icon: Images.moreImage, screen:  const MoreScreen()),
+        NavigationModel(name: 'orders', icon: Images.shoppingImage, screen: const OrderScreen(isBacButtonExist: false, fromDashboard: true)),
+        NavigationModel(name: 'more', icon: Images.moreImage, screen: const MoreScreen()),
       ];
 
 
@@ -114,14 +107,29 @@ class DashBoardScreenState extends State<DashBoardScreen> {
         key: _scaffoldKey,
 
         body: PageStorage(bucket: bucket, child: _screens[_pageIndex].screen),
-        bottomNavigationBar: Container(height: 68,
-          decoration: BoxDecoration(borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(Dimensions.paddingSizeLarge)),
-            color: Theme.of(context).cardColor,
-            boxShadow: [BoxShadow(offset: const Offset(1,1), blurRadius: 2, spreadRadius: 1,
-                color: Theme.of(context).primaryColor.withValues(alpha:.125))],),
-          child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: _getBottomWidget(singleVendor)))));
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: Container(
+            height: 70,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: const Border(top: BorderSide(color: Color(0xFFE8EBE7))),
+              boxShadow: [
+                BoxShadow(
+                  offset: const Offset(0, -4),
+                  blurRadius: 18,
+                  color: Colors.black.withValues(alpha: .04),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: _getBottomWidget(singleVendor),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
 

@@ -54,6 +54,7 @@ class FeaturedDealWidget extends StatelessWidget {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall),
                           child: CustomImageWidget(
+                            fit: BoxFit.contain,
                             image: '${product.thumbnailFullUrl?.path}',
                             height: constrains.maxHeight * 0.8,
                             width: constrains.maxHeight * 0.8,

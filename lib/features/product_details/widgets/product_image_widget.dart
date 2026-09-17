@@ -79,10 +79,16 @@ class ProductImageWidget extends StatelessWidget {
                             itemBuilder: (context, index) {
                               return ClipRRect(
                                 borderRadius:BorderRadius.circular(Dimensions.paddingSizeSmall),
-                                child: CustomImageWidget(
-                                    height: 100,
-                                    width: MediaQuery.of(context).size.width,
-                                    image: '${productModel!.imagesFullUrl![index].path}'),
+                                child: Container(
+                                  color: const Color(0xFFF8FAFB),
+                                  padding: const EdgeInsets.all(8),
+                                  child: CustomImageWidget(
+                                    height: double.infinity,
+                                    width: double.infinity,
+                                    fit: BoxFit.contain,
+                                    image: '${productModel!.imagesFullUrl![index].path}',
+                                  ),
+                                ),
                               );
                             },
                             onPageChanged: (index) => productController.setImageSliderSelectedIndex(index),

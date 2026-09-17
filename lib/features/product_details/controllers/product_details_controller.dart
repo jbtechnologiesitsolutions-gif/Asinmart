@@ -27,6 +27,7 @@ class ProductDetailsController extends ChangeNotifier {
   int? _quantity = 0;
   int? _variantIndex;
   List<int>? _variationIndex;
+  int? _selectionProductId;
   int? _orderCount;
   int? _wishCount;
   String? _sharableLink;
@@ -59,6 +60,7 @@ class ProductDetailsController extends ChangeNotifier {
       _isDetails = false;
       _productDetailsModel = ProductDetailsModel.fromJson(apiResponse.response!.data);
       if(_productDetailsModel != null){
+        initData(_productDetailsModel!, _productDetailsModel!.minimumOrderQty ?? 1, context);
         log("=====slug===>$slug/ $productId");
         // Provider.of<SellerProductController>(Get.context!, listen: false).
         // getSellerProductList(_productDetailsModel?.addedBy == 'admin' ? '0' : productDetailsModel!.userId.toString(), 1, productId, reload: true);
@@ -81,11 +83,17 @@ class ProductDetailsController extends ChangeNotifier {
 
 
   void initData(ProductDetailsModel product, int? minimumOrderQuantity, BuildContext context) {
+    _selectionProductId = product.id;
     _variantIndex = 0;
-    _quantity = minimumOrderQuantity;
-    _variationIndex = [];
-    for (int i=0; i<= product.choiceOptions!.length; i++) {
-      _variationIndex!.add(0);
+    _quantity = minimumOrderQuantity ?? product.minimumOrderQty ?? 1;
+    final choices = product.choiceOptions ?? [];
+    _variationIndex = List<int>.filled(choices.length, 0);
+  }
+
+  void ensureDataInitialized(ProductDetailsModel product, int? minimumOrderQuantity, BuildContext context) {
+    final expectedLength = product.choiceOptions?.length ?? 0;
+    if (_selectionProductId != product.id || _variationIndex == null || _variationIndex!.length != expectedLength) {
+      initData(product, minimumOrderQuantity, context);
     }
   }
 
@@ -144,8 +152,9 @@ class ProductDetailsController extends ChangeNotifier {
   }
 
   void setCartVariationIndex(int? minimumOrderQuantity, int index, int i, BuildContext context) {
+    if (_variationIndex == null || index < 0 || index >= _variationIndex!.length) return;
     _variationIndex![index] = i;
-    _quantity = minimumOrderQuantity;
+    _quantity = minimumOrderQuantity ?? _productDetailsModel?.minimumOrderQty ?? 1;
     notifyListeners();
   }
 

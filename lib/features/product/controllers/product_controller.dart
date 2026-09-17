@@ -45,6 +45,14 @@ class ProductController extends ChangeNotifier {
   final List<HomeCategoryProduct> _homeCategoryProductList = [];
   List<HomeCategoryProduct> get homeCategoryProductList => _homeCategoryProductList;
 
+  // Dedicated home-page fallback for the Fashion category rail. This uses the
+  // existing category-products API and does not interfere with the generic
+  // brand/category result used by the category screen.
+  ProductModel? _fashionCategoryProductModel;
+  ProductModel? get fashionCategoryProductModel => _fashionCategoryProductModel;
+  int? _fashionCategoryId;
+  int? get fashionCategoryId => _fashionCategoryId;
+
   MostDemandedProductModel? _mostDemandedProductModel;
   MostDemandedProductModel? get  mostDemandedProductModel => _mostDemandedProductModel;
 
@@ -227,6 +235,25 @@ class ProductController extends ChangeNotifier {
 
 
 
+
+  Future<void> getFashionCategoryProductList({required int id, bool isUpdate = true}) async {
+    _fashionCategoryId = id;
+    if (isUpdate) notifyListeners();
+
+    final ApiResponseModel apiResponse = await productServiceInterface!.getBrandOrCategoryProductList(
+      isBrand: false,
+      id: id,
+      searchProduct: '',
+      offset: 1,
+    );
+
+    if (apiResponse.response?.statusCode == 200) {
+      _fashionCategoryProductModel = ProductModel.fromJson(apiResponse.response?.data);
+    } else {
+      _fashionCategoryProductModel = ProductModel(products: [], offset: 1);
+    }
+    notifyListeners();
+  }
 
   ProductModel? _brandOrCategoryProductList;
 

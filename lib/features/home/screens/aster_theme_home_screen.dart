@@ -18,6 +18,7 @@ import 'package:flutter_sixvalley_ecommerce/features/home/shimmers/flash_deal_sh
 import 'package:flutter_sixvalley_ecommerce/features/home/shimmers/order_again_shimmer.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/shimmers/top_store_shimmer.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/announcement_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/features/home/widgets/marketplace_home_header.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/aster_theme/find_what_you_need_shimmer.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/aster_theme/find_what_you_need_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/aster_theme/more_store_list_view_widget.dart';
@@ -160,13 +161,13 @@ class _AsterThemeHomeScreenState extends State<AsterThemeHomeScreen> {
             await AsterThemeHomeScreen.loadData(true);
           },
         child: CustomScrollView(controller: _scrollController, slivers: [
-          SliverAppBar(
-            floating: true,
-            elevation: 0,
-            centerTitle: false,
-            automaticallyImplyLeading: false,
-            backgroundColor: Theme.of(context).highlightColor,
-            title: Image.asset(Images.logoWithNameImage, height: 35)),
+          const SliverToBoxAdapter(
+            child: MarketplaceHomeHeader(),
+          ),
+
+          const SliverToBoxAdapter(
+            child: HomeQuickCategoryStrip(),
+          ),
 
           SliverToBoxAdapter(child: Provider.of<SplashController>(context, listen: false).configModel!.announcement!.status == '1'?
           Consumer<SplashController>(
@@ -176,19 +177,7 @@ class _AsterThemeHomeScreenState extends State<AsterThemeHomeScreen> {
             },
           ) : const SizedBox()),
 
-          // Search Button
-          SliverPersistentHeader(pinned: true, delegate: SliverDelegate(
-            child: InkWell(
-              onTap: ()=> RouterHelper.getSearchRoute(action: RouteAction.push),
-              child: const Hero(tag: 'search', child: Material(child: SearchHomePageWidget())),
-            ),
-          )),
-
-
           SliverToBoxAdapter(child: const BannersWidget()),
-          // SliverToBoxAdapter(child: SizedBox(height: Dimensions.paddingSizeDefault)),
-
-          SliverToBoxAdapter(child: const CategoryListWidget(isHomePage: true)),
           SliverToBoxAdapter(child: SizedBox(height: Dimensions.paddingSizeDefault)),
 
           SliverToBoxAdapter(

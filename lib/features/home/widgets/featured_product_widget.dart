@@ -19,13 +19,13 @@ class FeaturedProductWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final isTablet = ResponsiveHelper.isTab(context);
 
-    final viewportFraction = isTablet ? 0.4 : 0.6;
+    final viewportFraction = isTablet ? 0.34 : 0.52;
 
     return Selector<ProductController, ProductModel?>(
       selector: (ctx, productController)=> productController.featuredProductModel,
         builder: (context, featuredProductModel, _) {
       return (featuredProductModel?.products?.isNotEmpty ?? false)  ? ColoredBox(
-        color: Theme.of(context).colorScheme.onTertiary,
+        color: const Color(0xFFF8FAFB),
         child: Column(children: [
           Padding(
             padding: const EdgeInsets.symmetric(
@@ -39,7 +39,7 @@ class FeaturedProductWidget extends StatelessWidget {
           ),
 
           SizedBox(
-            height: ResponsiveHelper.isTab(context)? MediaQuery.of(context).size.width * .58 : 295,
+            height: ResponsiveHelper.isTab(context) ? 390 : 340,
             child: CarouselSlider.builder(
               options: CarouselOptions(
                 viewportFraction: viewportFraction,
@@ -47,7 +47,7 @@ class FeaturedProductWidget extends StatelessWidget {
                 pauseAutoPlayOnTouch: true,
                 pauseAutoPlayOnManualNavigate: true,
                 enlargeFactor: 0.3,
-                enlargeCenterPage: true,
+                enlargeCenterPage: false,
                 pauseAutoPlayInFiniteScroll: true,
                 disableCenter: true,
               ),

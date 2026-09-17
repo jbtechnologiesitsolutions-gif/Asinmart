@@ -164,12 +164,40 @@ class ShippingController extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     ApiResponseModel apiResponse = await shippingServiceInterface.addShippingMethod(id,cartGroupId);
-    if (apiResponse.response != null && apiResponse.response!.statusCode == 200) {
+    if (apiResponse.response != null &&
+        (apiResponse.response!.statusCode ?? 0) >= 200 &&
+        (apiResponse.response!.statusCode ?? 0) < 300) {
+      // In in-house order-wise shipping the UI uses `all_cart_group`, while
+      // the digital-payment backend validates every real cart_group_id. Keep
+      // the global selection, then explicitly persist the same method against
+      // each checked physical cart group so payment cannot fail with
+      // `shipping-method: Data not found`.
+      if (cartGroupId == 'all_cart_group' && id != null) {
+        final CartController cartController = Provider.of<CartController>(Get.context!, listen: false);
+        await cartController.getCartData(Get.context!, reload: false);
+
+        final Set<String> physicalGroups = cartController.cartList
+            .where((CartModel item) => (item.isChecked ?? false) && item.productType == 'physical' && (item.cartGroupId?.isNotEmpty ?? false))
+            .map((CartModel item) => item.cartGroupId!)
+            .toSet();
+
+        for (final String groupId in physicalGroups) {
+          final ApiResponseModel groupResponse = await shippingServiceInterface.addShippingMethod(id, groupId);
+          final int status = groupResponse.response?.statusCode ?? 0;
+          if (status < 200 || status >= 300) {
+            ApiChecker.checkApi(groupResponse);
+            _isLoading = false;
+            notifyListeners();
+            return;
+          }
+        }
+      }
+
       await Provider.of<CartController>(Get.context!, listen: false).getCartData(Get.context!);
+      await getChosenShippingMethod(Get.context!);
       if(context.mounted){
         Navigator.pop(Get.context!);
       }
-      getChosenShippingMethod(Get.context!);
       showCustomSnackBarWidget(getTranslated('shipping_method_added_successfully', Get.context!), Get.context!, snackBarType: SnackBarType.success);
 
     } else {
@@ -183,6 +211,25 @@ class ShippingController extends ChangeNotifier {
   }
 
 
+
+  /// Saves a shipping method without changing the current route. This is used
+  /// as a checkout safety net when the backend expects a CartShipping record
+  /// for every checked physical cart group.
+  Future<bool> saveShippingMethodForGroupSilently(int? id, String? cartGroupId) async {
+    if (id == null || cartGroupId == null || cartGroupId.isEmpty) {
+      return false;
+    }
+
+    ApiResponseModel apiResponse = await shippingServiceInterface.addShippingMethod(id, cartGroupId);
+    if (apiResponse.response != null &&
+        (apiResponse.response!.statusCode ?? 0) >= 200 &&
+        (apiResponse.response!.statusCode ?? 0) < 300) {
+      return true;
+    }
+
+    ApiChecker.checkApi(apiResponse);
+    return false;
+  }
 
   String? _selectedShippingType;
   String? get selectedShippingType=>_selectedShippingType;

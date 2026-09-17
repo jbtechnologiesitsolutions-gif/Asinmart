@@ -65,6 +65,7 @@ class SliderProductWidget extends StatelessWidget {
                             child: Stack(
                               children: [
                                 CustomImageWidget(
+                                  fit: BoxFit.contain,
                                   image: '${product.thumbnailFullUrl?.path}',
                                   width: constrains.maxWidth,
                                   height:constrains.maxWidth * 0.9,

@@ -4,6 +4,7 @@ import 'package:flutter_sixvalley_ecommerce/features/address/controllers/address
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/banner/controllers/banner_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/banner/widgets/banners_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/features/banner/widgets/fashion_banner_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/banner/widgets/footer_banner_slider_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/banner/widgets/single_banner_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/brand/controllers/brand_controller.dart';
@@ -18,6 +19,8 @@ import 'package:flutter_sixvalley_ecommerce/features/deal/widgets/featured_deal_
 import 'package:flutter_sixvalley_ecommerce/features/deal/widgets/flash_deals_list_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/shimmers/flash_deal_shimmer.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/announcement_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/features/home/widgets/marketplace_home_header.dart';
+import 'package:flutter_sixvalley_ecommerce/features/home/widgets/marketplace_home_sections.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/aster_theme/find_what_you_need_shimmer.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/featured_product_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/product_list_widget.dart';
@@ -25,6 +28,7 @@ import 'package:flutter_sixvalley_ecommerce/features/home/widgets/product_type_p
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/search_home_page_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/notification/controllers/notification_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/controllers/product_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/product/enums/product_type.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/widgets/home_category_product_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/widgets/latest_product_list_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/widgets/recommended_product_widget.dart';
@@ -70,7 +74,17 @@ class HomePage extends StatefulWidget {
 
     splashController.initConfig(Get.context!, null, null);
 
-    categoryController.getCategoryList(reload);
+    await categoryController.getCategoryList(reload);
+    int? fashionCategoryId;
+    for (final category in categoryController.categoryList) {
+      if ((category.name ?? '').toLowerCase().contains('fashion')) {
+        fashionCategoryId = category.id;
+        break;
+      }
+    }
+    if (fashionCategoryId != null) {
+      productController.getFashionCategoryProductList(id: fashionCategoryId, isUpdate: reload);
+    }
 
     bannerController.getBannerList();
 
@@ -94,6 +108,7 @@ class HomePage extends StatefulWidget {
     productController.getSelectedProductModel(1, isUpdate: reload);
 
     productController.getFeaturedProductModel(1, isUpdate: reload);
+    productController.getAllProductModelByType(offset: 1, type: ProductType.topProduct, isUpdate: reload);
 
     productController.getRecommendedProduct();
 
@@ -135,245 +150,72 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final ConfigModel? configModel = Provider.of<SplashController>(context, listen: false).configModel;
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F8F6),
+      resizeToAvoidBottomInset: false,
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async => HomePage.loadData(true),
+          child: CustomScrollView(
+            controller: _scrollController,
+            slivers: [
+              const SliverToBoxAdapter(child: MarketplaceHomeHeader()),
+              const SliverToBoxAdapter(child: HomeQuickCategoryStrip()),
 
-
-    return Scaffold(resizeToAvoidBottomInset: false,
-      body: SafeArea(child: RefreshIndicator(
-        onRefresh: () async {
-          await HomePage.loadData(true);
-        },
-        child: CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            SliverAppBar(
-              floating: true,
-              elevation: 0,
-              centerTitle: false,
-              automaticallyImplyLeading: false,
-              backgroundColor: Theme.of(context).highlightColor,
-              title: Image.asset(Images.logoWithNameImage, height: 35),
-            ),
-
-            SliverToBoxAdapter(child: Provider.of<SplashController>(context, listen: false).configModel!.announcement!.status == '1'?
-            Consumer<SplashController>(
-              builder: (context, announcement, _){
-                return (announcement.configModel!.announcement!.announcement != null && announcement.onOff)?
-                AnnouncementWidget(announcement: announcement.configModel!.announcement):const SizedBox();
-              }): const SizedBox()),
-
-            SliverPersistentHeader(pinned: true, delegate: SliverSearchDelegate(
-              child: InkWell(
-                onTap: ()=> RouterHelper.getSearchRoute(action: RouteAction.push),
-                child: const Hero(tag: 'search', child: Material(child: SearchHomePageWidget())),
+              SliverToBoxAdapter(
+                child: Provider.of<SplashController>(context, listen: false).configModel?.announcement?.status == '1'
+                    ? Consumer<SplashController>(
+                        builder: (context, announcement, _) {
+                          return (announcement.configModel?.announcement?.announcement != null && announcement.onOff)
+                              ? AnnouncementWidget(announcement: announcement.configModel!.announcement)
+                              : const SizedBox.shrink();
+                        },
+                      )
+                    : const SizedBox.shrink(),
               ),
-            )),
 
+              const SliverToBoxAdapter(child: FashionBannersWidget()),
+              const SliverToBoxAdapter(child: MarketplacePromoRibbon()),
+              const SliverToBoxAdapter(child: MarketplaceCoverFlowShowcase()),
+              const SliverToBoxAdapter(child: MarketplaceShopByCategory()),
+              const SliverToBoxAdapter(child: MarketplaceFashionCollections()),
+              // API-driven category sliders. Fashion is sorted to the first
+              // position so the Fashion product rail appears directly below
+              // Fashion Collections when the API provides that category.
+              const SliverToBoxAdapter(child: MarketplaceHomeCategoryCarousels()),
 
-            SliverToBoxAdapter(child: BannersWidget()),
-
-
-            SliverToBoxAdapter(
-              child: CategoryListWidget(isHomePage: true),
-            ),
-            SliverToBoxAdapter(child: SizedBox(height: Dimensions.paddingSizeDefault)),
-
-            SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  Consumer<FlashDealController>(builder: (context, megaDeal, child) {
-                    return  megaDeal.flashDeal == null ? const FlashDealShimmer()
-                      : megaDeal.flashDealList.isNotEmpty ? Column(children: [
-
-                        Padding(
-                        padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
-                        child: FlashDealBar(
-                          title: getTranslated('flash_deal', context)!.toUpperCase(),
-                          eventDuration: megaDeal.flashDeal != null ? megaDeal.duration : null,
-                          onTap: () {
-                            RouterHelper.getFlashDealScreenViewRoute();
-                          },
-                        ),
-
-                        // TitleRowWidget(
-                        //   title: getTranslated('flash_deal', context)?.toUpperCase(),
-                        //   eventDuration: megaDeal.flashDeal != null ? megaDeal.duration : null,
-                        //   onTap: () {
-                        //     RouterHelper.getFlashDealScreenViewRoute();
-                        //   },
-                        //   isFlash: true,
-                        // ),
-
-
-                      ),
-                      const SizedBox(height: Dimensions.paddingSizeSmall),
-
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
-                        child: Text(getTranslated('hurry_up_the_offer_is_limited_grab_while_it_lasts', context)??'',
-                          style: textRegular.copyWith(color: Provider.of<ThemeController>(context, listen: false).darkTheme?
-                          Theme.of(context).hintColor : Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeDefault),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      const SizedBox(height: Dimensions.paddingSizeSmall),
-
-                      const FlashDealsListWidget()
-
-                    ]) : const SizedBox.shrink();
-                  }),
-                  const SizedBox(height: Dimensions.paddingSizeExtraSmall),
-                ],
-              ),
-            ),
-
-
-            SliverToBoxAdapter(
-              child: Consumer<FeaturedDealController>(
-                  builder: (context, featuredDealProvider, child) {
-                    return  featuredDealProvider.featuredDealProductList != null? featuredDealProvider.featuredDealProductList!.isNotEmpty ?
-                    Column(
-                      children: [
-                        Stack(children: [
-                          Container(
-                            width: MediaQuery.of(context).size.width,
-                            height: 150,
-                            color: Provider.of<ThemeController>(context, listen: false).darkTheme ?
-                            Theme.of(context).highlightColor
-                                : Theme.of(context).colorScheme.onTertiary,
-                          ),
-
-                          Column(children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeDefault),
-                              child: TitleRowWidget(
-                                title: '${getTranslated('featured_deals', context)}',
-                                onTap: () {
-                                  RouterHelper.getFeaturedDealScreenViewRoute();
-                                },
-                              ),
-                            ),
-
-                            const FeaturedDealsListWidget(),
-                          ]),
-                        ]),
-
-                        const SizedBox(height: Dimensions.paddingSizeDefault),
-                      ],
-                    ) : const SizedBox.shrink() : const FindWhatYouNeedShimmer();}
-              ),
-            ),
-
-
-            SliverToBoxAdapter(
-              child: const ClearanceListWidget(),
-            ),
-            SliverToBoxAdapter(child: SizedBox(height: Dimensions.paddingSizeDefault)),
-
-
-            SliverToBoxAdapter(
-              child: Consumer<BannerController>(builder: (context, footerBannerProvider, child){
-                return footerBannerProvider.footerBannerList != null && footerBannerProvider.footerBannerList!.isNotEmpty?
-                Padding(padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
-                    child: SingleBannersWidget( bannerModel : footerBannerProvider.footerBannerList?[0])):
-                const SizedBox();
-              }),
-            ),
-            SliverToBoxAdapter(child: SizedBox(height: Dimensions.paddingSizeDefault)),
-
-
-            SliverToBoxAdapter(
-              child: const FeaturedProductWidget(),
-            ),
-            SliverToBoxAdapter(child: SizedBox(height: Dimensions.paddingSizeDefault)),
-
-            if(!singleVendor)
-            SliverToBoxAdapter(
-              child: Container(
-                padding: EdgeInsets.only(top: Dimensions.paddingSizeSmall),
-                color: Theme.of(context).cardColor,
-                child: Column(
-                  children: [
-                    Consumer<ShopController>(
-                        builder: (context, topSellerProvider, child) {
-                          return (topSellerProvider.topSellerModel != null && (topSellerProvider.topSellerModel!.sellers!=null && topSellerProvider.topSellerModel!.sellers!.isNotEmpty))?
-                          TitleRowWidget(title: getTranslated('top_seller', context),
-                              onTap: ()=> RouterHelper.getAllTopSellerRoute(action: RouteAction.push, title: 'top_seller')) :
-                          const SizedBox();
-                        }),
-                    singleVendor ? const SizedBox(height: 0):const SizedBox(height: Dimensions.paddingSizeSmall),
-
-                    singleVendor ? const SizedBox() :
-                    Consumer<ShopController>(
-                        builder: (context, topSellerProvider, child) {
-                          return (topSellerProvider.topSellerModel != null && (topSellerProvider.topSellerModel!.sellers!=null && topSellerProvider.topSellerModel!.sellers!.isNotEmpty))?
-                          Padding(padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeDefault),
-                              child: SizedBox(height: ResponsiveHelper.isTab(context)? 170 : 150, child: const TopSellerWidget())):const SizedBox();}
-
-                    )
-                  ],
+              SliverToBoxAdapter(
+                child: MarketplaceProductSection(
+                  eyebrow: 'STYLE EDIT',
+                  title: 'Trending Fashion',
+                  productType: ProductType.featuredProduct,
+                  productsBuilder: (controller) {
+                    final fashionProducts = controller.fashionCategoryProductModel?.products;
+                    return (fashionProducts?.isNotEmpty ?? false)
+                        ? fashionProducts
+                        : controller.featuredProductModel?.products;
+                  },
                 ),
               ),
-            ),
 
-            if(!singleVendor)
-            SliverToBoxAdapter(child: SizedBox(height: Dimensions.paddingSizeDefault)),
-
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.only(bottom: Dimensions.paddingSizeDefault),
-                child: RecommendedProductWidget()
+              SliverToBoxAdapter(
+                child: MarketplaceProductSection(
+                  eyebrow: 'MOST VIEWED',
+                  title: 'Top Most Viewed Products',
+                  productType: ProductType.topProduct,
+                  productsBuilder: (controller) => controller.allProductModel?.products,
+                ),
               ),
-            ),
 
-
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.only(bottom: Dimensions.paddingSizeDefault),
-                child: LatestProductListWidget()
-              ),
-            ),
-
-
-            if(configModel!.brandSetting == "1")
-            SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  const BrandListWidget(isHomePage: true),
-                  const SizedBox(height: Dimensions.paddingSizeDefault),
-                ],
-              )
-            ),
-
-            const HomeCategoryProductWidget(isHomePage: true),
-
-            SliverToBoxAdapter(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                if((Provider.of<BannerController>(context, listen: false).footerBannerList?.length ?? 0) > 1)
-                const SizedBox(height: Dimensions.paddingSizeDefault),
-
-                const FooterBannerSliderWidget(),
-              ]),
-            ),
-
-
-
-            SliverPersistentHeader(pinned: true, delegate: SliverDelegate(
-              height: 50,
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: Container(color: Theme.of(context).scaffoldBackgroundColor, child: const ProductPopupFilterWidget()),
-              ),
-            )),
-
-            HomeProductListWidget(scrollController: _scrollController),
-
-
-          ],
-        ),
+              const SliverToBoxAdapter(child: MarketplaceMultiVendorCard()),
+              const SliverToBoxAdapter(child: MarketplaceVerifiedStores()),
+              const SliverToBoxAdapter(child: MarketplaceTrustSection()),
+              const SliverToBoxAdapter(child: MarketplaceAppFooter()),
+              const SliverToBoxAdapter(child: SizedBox(height: 8)),
+            ],
+          ),
         ),
       ),
-      // ),
     );
   }
 }

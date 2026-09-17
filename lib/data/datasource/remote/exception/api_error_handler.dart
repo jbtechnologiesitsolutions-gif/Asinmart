@@ -1,4 +1,3 @@
-
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/error_response.dart';
@@ -8,100 +7,146 @@ import 'package:provider/provider.dart';
 
 class ApiErrorHandler {
   static dynamic getMessage(dynamic error) {
-    dynamic errorDescription = "";
-    if (error is Exception) {
-      try {
-        if (error is DioException) {
-          switch (error.type) {
-            case DioExceptionType.cancel:
-              errorDescription = "Request to API server was cancelled";
-              break;
-            case DioExceptionType.connectionTimeout:
-              errorDescription = "Connection timeout with API server";
-              break;
-            case DioExceptionType.sendTimeout:
-              errorDescription = "Send timeout";
-              break;
-            case DioExceptionType.transformTimeout:
-              errorDescription = "Transform timeout";
-              break;
-            case DioExceptionType.receiveTimeout:
-              errorDescription = "Receive timeout in connection with API server";
-              break;
-            case DioExceptionType.badResponse:
-              switch (error.response!.statusCode) {
-
-                case 403:
-                  if(error.response!.data['errors'] != null){
-                    ErrorResponse errorResponse = ErrorResponse.fromJson(error.response?.data);
-                    errorDescription = errorResponse.errors?[0].message;
-                  }else{
-                    errorDescription = error.response!.data['message'];
-                  }
-
-                  if (kDebugMode) {
-                    print("=================403=============>>$errorDescription");
-                  }
-
-                  break;
-                case 401:
-                  if(error.response!.data['errors'] != null){
-                    ErrorResponse errorResponse = ErrorResponse.fromJson(error.response?.data);
-                    errorDescription = errorResponse.errors?[0].message;
-                  } else{
-                    errorDescription = error.response!.data['message'];
-                  }
-                  Provider.of<AuthController>(Get.context!,listen: false).clearSharedData();
-                  break;
-                case 404:
-                  break;
-                case 400:
-                  if(error.response!.data['errors'] != null){
-                    ErrorResponse errorResponse = ErrorResponse.fromJson(error.response?.data);
-                    errorDescription = errorResponse.errors?[0].message;
-                  } else{
-                    errorDescription = error.response?.data['message'] ?? '';
-                  }
-                  break;
-                case 500:
-                  if (kDebugMode) {
-                    print("-----------500------------->>${error.response!.data}");
-                  }
-                  errorDescription = 'Internal server error';
-                case 503:
-                  if(error.response!.data['message'] != null){
-                    errorDescription = error.response!.data['message'];
-                  }
-                case 429:
-                  errorDescription = error.response!.statusMessage;
-                  break;
-                default:
-                  ErrorResponse errorResponse = ErrorResponse.fromJson(error.response!.data);
-                  if (errorResponse.errors != null && errorResponse.errors!.isNotEmpty) {
-                    errorDescription = errorResponse;
-                  } else {errorDescription = "Failed to load data - status code: ${error.response!.statusCode}";
-                  }
-              }
-              break;
-            case DioExceptionType.badCertificate:
-              // TODO: Handle this case.
-              break;
-            case DioExceptionType.connectionError:
-              // TODO: Handle this case.
-              break;
-            case DioExceptionType.unknown:
-              errorDescription = "Request to API call limit excited ";
-              break;
-          }
-        } else {
-          errorDescription = "Unexpected error occured";
-        }
-      } on FormatException catch (e) {
-        errorDescription = e.toString();
-      }
-    } else {
-      errorDescription = "is not a subtype of exception";
+    if (error is! Exception) {
+      return error?.toString() ?? 'Unexpected error occurred';
     }
-    return errorDescription;
+
+    try {
+      if (error is! DioException) {
+        return 'Unexpected error occurred';
+      }
+
+      switch (error.type) {
+        case DioExceptionType.cancel:
+          return 'Request to API server was cancelled';
+        case DioExceptionType.connectionTimeout:
+          return 'Connection timeout with API server';
+        case DioExceptionType.sendTimeout:
+          return 'Send timeout';
+        case DioExceptionType.transformTimeout:
+          return 'Transform timeout';
+        case DioExceptionType.receiveTimeout:
+          return 'Receive timeout in connection with API server';
+        case DioExceptionType.badCertificate:
+          return 'Unable to establish a secure connection';
+        case DioExceptionType.connectionError:
+          return 'Unable to connect to the server';
+        case DioExceptionType.unknown:
+          return error.message ?? 'Unexpected network error';
+        case DioExceptionType.badResponse:
+          final Response<dynamic>? response = error.response;
+          final int? statusCode = response?.statusCode;
+          final String message = _extractMessage(response?.data, statusCode);
+
+          if (kDebugMode) {
+            debugPrint('API ERROR[$statusCode] ${error.requestOptions.path}');
+            debugPrint('API ERROR BODY: ${response?.data}');
+            debugPrint('API ERROR MESSAGE: $message');
+          }
+
+          if (statusCode == 401) {
+            try {
+              Provider.of<AuthController>(Get.context!, listen: false).clearSharedData();
+            } catch (_) {
+              // Error parsing must never throw a second exception.
+            }
+          }
+
+          return message;
+      }
+    } on FormatException catch (e) {
+      return e.toString();
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('ApiErrorHandler parse failure: $e');
+      }
+      return 'Unexpected server response';
+    }
+  }
+
+  static String _extractMessage(dynamic data, int? statusCode) {
+    if (data == null) {
+      return _fallbackStatusMessage(statusCode);
+    }
+
+    if (data is String) {
+      return data.trim().isNotEmpty ? data : _fallbackStatusMessage(statusCode);
+    }
+
+    if (data is Map) {
+      final Map<String, dynamic> map = Map<String, dynamic>.from(data);
+
+      final dynamic topLevelMessage = map['message'];
+      if (topLevelMessage != null && topLevelMessage.toString().trim().isNotEmpty) {
+        return topLevelMessage.toString();
+      }
+
+      if (map['errors'] != null) {
+        final dynamic rawErrors = map['errors'];
+        if (rawErrors is Map && rawErrors['code']?.toString() == 'shipping-method') {
+          return 'Please select a shipping method before checkout';
+        }
+
+        try {
+          final ErrorResponse parsed = ErrorResponse.fromJson(map);
+          if (parsed.errors != null && parsed.errors!.isNotEmpty) {
+            final Iterable<String> messages = parsed.errors!
+                .map((Errors e) => (e.message ?? e.code ?? '').trim())
+                .where((String value) => value.isNotEmpty);
+            if (messages.isNotEmpty) {
+              return messages.join('\n');
+            }
+          }
+        } catch (_) {
+          // Continue with generic extraction below.
+        }
+      }
+
+      // Laravel validation responses can also be a generic key/value map.
+      for (final dynamic value in map.values) {
+        if (value is String && value.trim().isNotEmpty) {
+          return value;
+        }
+        if (value is List && value.isNotEmpty) {
+          return value.first.toString();
+        }
+      }
+    }
+
+    if (data is List && data.isNotEmpty) {
+      final dynamic first = data.first;
+      if (first is Map) {
+        final dynamic message = first['message'] ?? first['code'];
+        if (message != null) {
+          return message.toString();
+        }
+      }
+      return first.toString();
+    }
+
+    return _fallbackStatusMessage(statusCode);
+  }
+
+  static String _fallbackStatusMessage(int? statusCode) {
+    switch (statusCode) {
+      case 400:
+        return 'Bad request';
+      case 401:
+        return 'Unauthorized request';
+      case 403:
+        return 'Checkout request was rejected by the server';
+      case 404:
+        return 'Requested resource was not found';
+      case 429:
+        return 'Too many requests. Please try again later';
+      case 500:
+        return 'Internal server error';
+      case 503:
+        return 'Service temporarily unavailable';
+      default:
+        return statusCode == null
+            ? 'Unexpected server response'
+            : 'Request failed - status code: $statusCode';
+    }
   }
 }

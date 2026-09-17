@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/checkout/controllers/checkout_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/checkout/widgets/order_place_bottomsheet_widget.dart';
@@ -17,7 +18,13 @@ class DigitalPaymentScreen extends StatefulWidget {
   final String url;
   final bool fromWallet;
   final String orderId;
-  const DigitalPaymentScreen({super.key, required this.url, this.fromWallet = false, this.orderId = ''});
+
+  const DigitalPaymentScreen({
+    super.key,
+    required this.url,
+    this.fromWallet = false,
+    this.orderId = '',
+  });
 
   @override
   DigitalPaymentScreenState createState() => DigitalPaymentScreenState();
@@ -32,7 +39,6 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
   @override
   void initState() {
     super.initState();
-
     controller = WebViewController();
   }
 
@@ -46,36 +52,113 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
   }
 
   void _initWebViewController() {
+    final Uri? initialUri = Uri.tryParse(widget.url.trim());
+    if (initialUri == null ||
+        !initialUri.hasScheme ||
+        !(initialUri.scheme == 'http' || initialUri.scheme == 'https')) {
+      _isLoading = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _handlePaymentResult(false, true, false, false, null);
+      });
+      return;
+    }
+
     controller
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Theme.of(context).cardColor)
       ..setNavigationDelegate(
         NavigationDelegate(
           onProgress: (int progress) {
-            if (progress == 100) {
+            if (progress == 100 && mounted) {
               setState(() => _isLoading = false);
             }
           },
-          onPageStarted: (String url) => _checkRedirect(url),
-          onPageFinished: (String url) => _checkRedirect(url),
+          onPageStarted: _checkRedirect,
+          onPageFinished: _checkRedirect,
           onWebResourceError: (WebResourceError error) {
-            debugPrint("WebView Error: ${error.description}");
+            debugPrint('Payment WebView Error: ${error.errorCode} ${error.description}');
           },
-          onNavigationRequest: (NavigationRequest request) {
+          onNavigationRequest: (NavigationRequest request) async {
             if (_isRedirectUrl(request.url)) {
               _checkRedirect(request.url);
               return NavigationDecision.prevent;
             }
+
+            final Uri? uri = Uri.tryParse(request.url);
+            if (uri != null && _isExternalPaymentScheme(uri.scheme)) {
+              await _launchExternalPaymentApp(uri);
+              // Never ask WebView to load UPI/app-intent schemes. If no matching
+              // payment app is installed, the gateway page remains visible so
+              // the customer can choose another available payment method.
+              return NavigationDecision.prevent;
+            }
+
             return NavigationDecision.navigate;
           },
         ),
       )
-      ..loadRequest(Uri.parse(widget.url));
+      ..loadRequest(initialUri);
+  }
+
+  bool _isExternalPaymentScheme(String scheme) {
+    final normalized = scheme.toLowerCase();
+    return normalized.isNotEmpty &&
+        normalized != 'http' &&
+        normalized != 'https' &&
+        normalized != 'about' &&
+        normalized != 'data' &&
+        normalized != 'javascript';
+  }
+
+  Future<bool> _launchExternalPaymentApp(Uri uri) async {
+    try {
+      return await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      debugPrint('Unable to open payment app: $e');
+      return false;
+    }
+  }
+
+  String _normalizeHost(String host) {
+    final lower = host.toLowerCase().trim();
+    return lower.startsWith('www.') ? lower.substring(4) : lower;
   }
 
   bool _isRedirectUrl(String url) {
-    return ((url.contains('success') && url.contains('token')) || url.contains('fail') || url.contains('cancel'))
-        && url.contains(AppConstants.baseUrl);
+    final Uri? uri = Uri.tryParse(url);
+    final Uri? baseUri = Uri.tryParse(AppConstants.baseUrl);
+    if (uri == null || baseUri == null || uri.host.isEmpty) return false;
+
+    final String host = _normalizeHost(uri.host);
+    final String baseHost = _normalizeHost(baseUri.host);
+    final bool isStoreHost = host == baseHost || host.endsWith('.$baseHost');
+    if (!isStoreHost) return false;
+
+    final String lowerPath = uri.path.toLowerCase();
+    final String lowerUrl = url.toLowerCase();
+    final String status = (
+      uri.queryParameters['status'] ??
+      uri.queryParameters['payment_status'] ??
+      uri.queryParameters['result'] ??
+      ''
+    ).toLowerCase();
+
+    final bool hasSuccess = lowerPath.contains('success') ||
+        lowerUrl.contains('payment-success') ||
+        status == 'success' ||
+        status == 'successful' ||
+        status == 'paid';
+    final bool hasFailure = lowerPath.contains('fail') ||
+        lowerUrl.contains('payment-fail') ||
+        status == 'fail' ||
+        status == 'failed';
+    final bool hasCancel = lowerPath.contains('cancel') ||
+        lowerUrl.contains('payment-cancel') ||
+        status == 'cancel' ||
+        status == 'cancelled' ||
+        status == 'canceled';
+
+    return hasSuccess || hasFailure || hasCancel;
   }
 
   @override
@@ -104,7 +187,8 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
             Expanded(
               child: Stack(
                 children: [
-                  WebViewWidget(controller: controller),
+                  if (_isInitialized && widget.url.trim().isNotEmpty)
+                    WebViewWidget(controller: controller),
                   if (_isLoading)
                     Center(
                       child: CircularProgressIndicator(
@@ -122,15 +206,25 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
   }
 
   void _checkRedirect(String url) {
-
     if (_canRedirect && _isRedirectUrl(url)) {
       _canRedirect = false;
-      
-      bool isSuccess = url.contains('success');
-      bool isFailed = url.contains('fail');
-      bool isCancel = url.contains('cancel');
-      bool isNewUser = _getIsNewUser(url);
-      String? orderIds = _getOrderIds(url);
+
+      final String lowerUrl = url.toLowerCase();
+      final Uri? uri = Uri.tryParse(url);
+      final String status = (
+        uri?.queryParameters['status'] ??
+        uri?.queryParameters['payment_status'] ??
+        uri?.queryParameters['result'] ??
+        ''
+      ).toLowerCase();
+
+      final bool isSuccess = lowerUrl.contains('success') ||
+          status == 'success' || status == 'successful' || status == 'paid';
+      final bool isFailed = lowerUrl.contains('fail') || status == 'fail' || status == 'failed';
+      final bool isCancel = lowerUrl.contains('cancel') ||
+          status == 'cancel' || status == 'cancelled' || status == 'canceled';
+      final bool isNewUser = _getIsNewUser(url);
+      final String? orderIds = _getOrderIds(url);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _handlePaymentResult(isSuccess, isFailed, isCancel, isNewUser, orderIds);
@@ -138,45 +232,56 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
     }
   }
 
-  void _handlePaymentResult(bool isSuccess, bool isFailed, bool isCancel, bool isNewUser, String? orderIds) {
-    bool isLoggedIn = Provider.of<AuthController>(context, listen: false).isLoggedIn();
-
-    // if (Navigator.canPop(context)) {
-    //   Navigator.pop(context);
-    // }
+  void _handlePaymentResult(
+    bool isSuccess,
+    bool isFailed,
+    bool isCancel,
+    bool isNewUser,
+    String? orderIds,
+  ) {
+    final bool isLoggedIn = Provider.of<AuthController>(context, listen: false).isLoggedIn();
 
     if (isSuccess) {
-      if (widget.orderId.trim().isNotEmpty &&  orderIds == null) {
-        RouterHelper.getOrderDetailsScreenRoute(
-          orderId: int .parse(widget.orderId),
-          action: RouteAction.pushReplacement,
-          isNotification: true
-        );
+      if (widget.orderId.trim().isNotEmpty && widget.orderId.trim() != 'null' && (orderIds == null || orderIds.isEmpty)) {
+        final int? parsedOrderId = int.tryParse(widget.orderId);
+        if (parsedOrderId != null) {
+          RouterHelper.getOrderDetailsScreenRoute(
+            orderId: parsedOrderId,
+            action: RouteAction.pushReplacement,
+            isNotification: true,
+          );
+        } else {
+          RouterHelper.getDashboardRoute(action: RouteAction.pushReplacement, page: 'orders');
+        }
       } else if (isLoggedIn && orderIds != null && orderIds.isNotEmpty) {
-        RouterHelper.getOrderScreenRoute(isBackButtonExist: true, action: RouteAction.push, fromPlaceOrder: true);
+        RouterHelper.getOrderScreenRoute(
+          isBackButtonExist: true,
+          action: RouteAction.pushReplacement,
+          fromPlaceOrder: true,
+        );
       } else {
         RouterHelper.getDashboardRoute(action: RouteAction.pushReplacement, page: 'home');
       }
 
-      if(widget.orderId.trim() == 'null') {
+      if (widget.orderId.trim() == 'null') {
         _showResultUI(
           isBottomSheet: true,
           orderIds: orderIds,
           isNewUser: isNewUser,
           icon: Icons.check,
           titleKey: isNewUser ? 'order_placed_Account_Created' : 'order_placed',
-          descKey: 'your_order_placed'
+          descKey: 'your_order_placed',
         );
       }
     } else {
       RouterHelper.getDashboardRoute(action: RouteAction.pushReplacement, page: 'home');
 
       _showResultUI(
-          isBottomSheet: false,
-          icon: Icons.clear,
-          titleKey: isFailed ? 'payment_failed' : 'payment_cancelled',
-          descKey: isFailed ? 'your_payment_failed' : 'your_payment_cancelled',
-          isFailed: true
+        isBottomSheet: false,
+        icon: Icons.clear,
+        titleKey: isFailed ? 'payment_failed' : 'payment_cancelled',
+        descKey: isFailed ? 'your_payment_failed' : 'your_payment_cancelled',
+        isFailed: true,
       );
     }
   }
@@ -188,7 +293,7 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
     required IconData icon,
     required String titleKey,
     required String descKey,
-    bool isFailed = false
+    bool isFailed = false,
   }) {
     Future.delayed(const Duration(milliseconds: 500), () {
       if (isBottomSheet) {
@@ -201,29 +306,29 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
             child: Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20))
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
               ),
               child: OrderPlaceBottomSheetWidget(
                 orderID: orderIds,
                 icon: icon,
                 title: getTranslated(titleKey, Get.context!),
                 description: getTranslated(descKey, Get.context!),
-                isFailed: isFailed
+                isFailed: isFailed,
               ),
             ),
           ),
         );
       } else {
         showAnimatedDialog(
-            Get.context!,
-            OrderPlaceDialogWidget(
-                icon: icon,
-                title: getTranslated(titleKey, Get.context!),
-                description: getTranslated(descKey, Get.context!),
-                isFailed: isFailed
-            ),
-            dismissible: false,
-            willFlip: true
+          Get.context!,
+          OrderPlaceDialogWidget(
+            icon: icon,
+            title: getTranslated(titleKey, Get.context!),
+            description: getTranslated(descKey, Get.context!),
+            isFailed: isFailed,
+          ),
+          dismissible: false,
+          willFlip: true,
         );
       }
     });
@@ -231,25 +336,29 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
 
   bool _getIsNewUser(String url) {
     try {
-      Uri uri = Uri.parse(url);
+      final Uri uri = Uri.parse(url);
       return uri.queryParameters['new_user'] == '1';
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   }
 
   String? _getOrderIds(String url) {
     try {
-      Uri uri = Uri.parse(url);
-      String? encodedData = uri.queryParameters['order_ids'];
-      if (encodedData != null && encodedData.isNotEmpty) {
-        String decoded = utf8.decode(base64.decode(encodedData));
+      final Uri uri = Uri.parse(url);
+      final String? encodedData = uri.queryParameters['order_ids'];
+      if (encodedData == null || encodedData.isEmpty) return null;
+
+      try {
+        final String decoded = utf8.decode(base64.decode(base64.normalize(encodedData)));
         return Provider.of<CheckoutController>(context, listen: false).extractId(decoded);
+      } catch (_) {
+        return Provider.of<CheckoutController>(context, listen: false).extractId(Uri.decodeComponent(encodedData));
       }
     } catch (e) {
-      debugPrint("Order ID Extraction Error: $e");
+      debugPrint('Order ID Extraction Error: $e');
+      return null;
     }
-    return '';
   }
 
   Future<void> _exitApp(BuildContext context) async {
@@ -274,5 +383,4 @@ class DigitalPaymentScreenState extends State<DigitalPaymentScreen> {
       );
     });
   }
-
 }
