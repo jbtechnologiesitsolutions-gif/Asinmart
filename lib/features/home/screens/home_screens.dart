@@ -21,6 +21,7 @@ import 'package:flutter_sixvalley_ecommerce/features/home/shimmers/flash_deal_sh
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/announcement_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/marketplace_home_header.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/marketplace_home_sections.dart';
+import 'package:flutter_sixvalley_ecommerce/features/home/widgets/template_home_sections.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/aster_theme/find_what_you_need_shimmer.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/featured_product_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/widgets/product_list_widget.dart';
@@ -42,6 +43,7 @@ import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/main.dart';
 import 'package:flutter_sixvalley_ecommerce/theme/controllers/theme_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
@@ -97,6 +99,7 @@ class HomePage extends StatefulWidget {
     cartController.getCartData(Get.context!);
 
     productController.getHomeCategoryProductList(reload);
+    productController.getWebsiteCoverFlowProducts(isUpdate: reload);
 
     brandController.getBrandList(offset: 1, isUpdate: reload);
 
@@ -111,6 +114,7 @@ class HomePage extends StatefulWidget {
     productController.getAllProductModelByType(offset: 1, type: ProductType.topProduct, isUpdate: reload);
 
     productController.getRecommendedProduct();
+    productController.getJustForYouProduct(1, isUpdate: reload, limit: 10);
 
 
     productController.getClearanceAllProductList(1, isUpdate: reload);
@@ -150,8 +154,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool dark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8F6),
+      backgroundColor: AsinDesign.canvas(context),
       resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: RefreshIndicator(
@@ -175,43 +180,49 @@ class _HomePageState extends State<HomePage> {
               ),
 
               const SliverToBoxAdapter(child: FashionBannersWidget()),
-              const SliverToBoxAdapter(child: MarketplacePromoRibbon()),
               const SliverToBoxAdapter(child: MarketplaceCoverFlowShowcase()),
-              const SliverToBoxAdapter(child: MarketplaceShopByCategory()),
-              const SliverToBoxAdapter(child: MarketplaceFashionCollections()),
-              // API-driven category sliders. Fashion is sorted to the first
-              // position so the Fashion product rail appears directly below
-              // Fashion Collections when the API provides that category.
               const SliverToBoxAdapter(child: MarketplaceHomeCategoryCarousels()),
 
               SliverToBoxAdapter(
-                child: MarketplaceProductSection(
-                  eyebrow: 'STYLE EDIT',
-                  title: 'Trending Fashion',
+                child: TemplateProductRail(
+                  title: 'Trending Products',
+                  icon: Icons.trending_up_rounded,
                   productType: ProductType.featuredProduct,
-                  productsBuilder: (controller) {
-                    final fashionProducts = controller.fashionCategoryProductModel?.products;
-                    return (fashionProducts?.isNotEmpty ?? false)
-                        ? fashionProducts
-                        : controller.featuredProductModel?.products;
-                  },
+                  productsBuilder: (controller) => controller.featuredProductModel?.products,
                 ),
               ),
-
               SliverToBoxAdapter(
-                child: MarketplaceProductSection(
-                  eyebrow: 'MOST VIEWED',
-                  title: 'Top Most Viewed Products',
+                child: TemplateProductRail(
+                  title: 'Latest Arrivals',
+                  icon: Icons.auto_awesome_rounded,
+                  productType: ProductType.latestProduct,
+                  productsBuilder: (controller) => controller.latestProductModel?.products,
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: TemplateProductRail(
+                  title: 'Popular Products',
+                  icon: Icons.local_fire_department_outlined,
                   productType: ProductType.topProduct,
                   productsBuilder: (controller) => controller.allProductModel?.products,
                 ),
               ),
 
-              const SliverToBoxAdapter(child: MarketplaceMultiVendorCard()),
-              const SliverToBoxAdapter(child: MarketplaceVerifiedStores()),
-              const SliverToBoxAdapter(child: MarketplaceTrustSection()),
-              const SliverToBoxAdapter(child: MarketplaceAppFooter()),
-              const SliverToBoxAdapter(child: SizedBox(height: 8)),
+              const SliverToBoxAdapter(child: TemplateTopBrands()),
+              const SliverToBoxAdapter(child: TemplateFeaturedStores()),
+
+              const SliverToBoxAdapter(child: TemplateRecommendedSpotlight()),
+              SliverToBoxAdapter(
+                child: TemplateProductRail(
+                  title: 'Recommended For You',
+                  icon: Icons.recommend_outlined,
+                  productType: ProductType.justForYou,
+                  productsBuilder: (controller) => controller.justForYouProductModel?.products,
+                ),
+              ),
+
+              const SliverToBoxAdapter(child: TemplateWhyShopWithUs()),
+              const SliverToBoxAdapter(child: SizedBox(height: 10)),
             ],
           ),
         ),

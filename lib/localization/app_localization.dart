@@ -55,7 +55,11 @@ class _DemoLocalizationsDelegate extends LocalizationsDelegate<AppLocalization> 
 
 
 extension StringExtension on String {
-  String toCapitalized() => length > 0 ?'${this[0].toUpperCase()}${substring(1).toLowerCase()}':'';
+  /// Capitalizes only the first character while preserving the remaining text.
+  /// Kept for compatibility with older app code that used `.capitalize()`.
+  String capitalize() => isEmpty ? '' : '${this[0].toUpperCase()}${substring(1)}';
+
+  String toCapitalized() => isNotEmpty ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}' : '';
   String toTitleCase() => replaceAll(RegExp('_'), ' ').split(' ').map((str) => str.toCapitalized()).join(' ');
 
   String camelCaseToSnakeCase() {

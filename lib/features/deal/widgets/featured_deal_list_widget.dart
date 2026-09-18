@@ -48,7 +48,7 @@ class FeaturedDealsListWidget extends StatelessWidget {
         return RepaintBoundary(
           child: MasonryGridView.count(
             itemCount: featuredDealProvider.featuredDealProductList?.length,
-            crossAxisCount: ResponsiveHelper.isTab(context) ? 3 : 2,
+            crossAxisCount: ResponsiveHelper.productGridCount(context),
             padding: const EdgeInsets.all(0),
             itemBuilder: (BuildContext context, int index) => ProductWidget(productModel: featuredDealProvider.featuredDealProductList![index]),
           ),

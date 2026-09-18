@@ -52,7 +52,7 @@ class RelatedProductWidget extends StatelessWidget {
 
           // RepaintBoundary(
           //   child: MasonryGridView.count(
-          //     crossAxisCount: ResponsiveHelper.isTab(context)? 3 : 2,
+          //     crossAxisCount: ResponsiveHelper.productGridCount(context),
           //     itemCount: prodProvider.relatedProductList!.length,
           //     shrinkWrap: true,
           //     physics: const NeverScrollableScrollPhysics(),

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_asset_image_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_directionality_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/modern_motion_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_image_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/discount_tag_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/wishlist/domain/models/wishlist_model.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/price_converter.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
@@ -22,7 +24,8 @@ class WishListWidget extends StatelessWidget {
     double ratting = (wishlistModel?.productFullInfo?.reviewsAvgRating != null) ?  double.parse('${wishlistModel?.productFullInfo?.reviewsAvgRating}') : 0;
 
     bool hasDiscount() => (wishlistModel?.productFullInfo != null &&  wishlistModel?.productFullInfo?.discount != null && (wishlistModel?.productFullInfo?.discount ?? 0) > 0) || (wishlistModel?.productFullInfo?.clearanceSale?.discountAmount ?? 0) > 0;
-    return InkWell(
+    return ModernPressable(
+      borderRadius: BorderRadius.circular(AsinDesign.radius),
       onTap: () {
         RouterHelper.getProductDetailsRoute(
           action: RouteAction.push,
@@ -37,16 +40,9 @@ class WishListWidget extends StatelessWidget {
             padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
             margin: const EdgeInsets.only(top: Dimensions.marginSizeSmall),
             decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha:0.05),
-                  spreadRadius: 0,
-                  blurRadius: 7,
-                  offset: const Offset(0, 1)
-                ),
-              ],
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
+              color: AsinDesign.card(context),
+              borderRadius: BorderRadius.circular(AsinDesign.radius),
+              border: Border.all(color: AsinDesign.line(context)),
             ),
 
             child: IntrinsicHeight(
@@ -66,10 +62,10 @@ class WishListWidget extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(Dimensions.paddingSizeEight),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall)
+                          color: AsinDesign.primarySoft,
+                          borderRadius: BorderRadius.circular(AsinDesign.radius)
                         ),
-                        child: Icon(Icons.shopping_cart, color: Theme.of(context).primaryColor, size: Dimensions.paddingSizeLarge),
+                        child: const Icon(Icons.shopping_cart_outlined, color: AsinDesign.primary, size: Dimensions.paddingSizeLarge),
                       ),
                     ),
                   ),
@@ -83,11 +79,11 @@ class WishListWidget extends StatelessWidget {
                       Stack(children: [
                         Container(
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
-                            border: Border.all(width: 1, color: Colors.black.withValues(alpha: 0.1)),
+                            borderRadius: BorderRadius.circular(AsinDesign.radius),
+                            border: Border.all(width: 1, color: Theme.of(context).dividerColor.withValues(alpha: .55)),
                           ),
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
+                            borderRadius: BorderRadius.circular(AsinDesign.radius),
                             child: CustomImageWidget(
                               width: 70,
                               height: 70,
@@ -101,7 +97,7 @@ class WishListWidget extends StatelessWidget {
                             child: Stack(children: [
                               Container(decoration: BoxDecoration(
                                 color: Colors.black.withValues(alpha: 0.30),
-                                borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
+                                borderRadius: BorderRadius.circular(AsinDesign.radius),
                               )),
 
                               Center(child: Padding(
@@ -169,14 +165,14 @@ class WishListWidget extends StatelessWidget {
                           Flexible(child: CustomDirectionalityWidget(
                             child: Text(
                               _getProductPrice(context),
-                              style: robotoBold.copyWith(color: Theme.of(context).primaryColor),
+                              style: robotoBold.copyWith(color: AsinDesign.primary),
                             ),
                           )),
                         ]),
                         const SizedBox(height: Dimensions.paddingSizeExtraSmall),
 
                         if(ratting > 0) Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-                          const Icon(Icons.star_rate_rounded, color: Colors.orange, size: Dimensions.paddingSizeDefault),
+                          const Icon(Icons.star_rate_rounded, color: AsinDesign.star, size: Dimensions.paddingSizeDefault),
 
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 2.0),

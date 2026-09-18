@@ -15,6 +15,7 @@ import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dar
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/controllers/localization_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/theme/controllers/theme_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
@@ -39,22 +40,24 @@ class ProductImageWidget extends StatelessWidget {
     return productModel != null?
     Consumer<ProductDetailsController>(
         builder: (context, productController,_) {
+          final images = productModel!.imagesFullUrl ?? [];
+          final thumbnailPath = productModel!.thumbnailFullUrl?.path ?? '';
           return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
 
             InkWell(
-              onTap: ()=> productModel!.productImagesNull!
+              onTap: () => (productModel!.productImagesNull ?? true) || images.isEmpty
                   ? null
                   : Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (BuildContext context) {
                           return ProductImageScreen(
                             title: getTranslated('product_image', context),
-                            imageList: productModel!.imagesFullUrl,
+                            imageList: images,
                           );
                         },
                       ),
                     ),
-              child: (productModel != null && productModel!.imagesFullUrl !=null) ?
+              child: productModel != null ?
               Padding(
                 padding: const EdgeInsets.only(
                   left: Dimensions.homePagePadding,
@@ -65,34 +68,40 @@ class ProductImageWidget extends StatelessWidget {
                 child: ClipRRect(borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall),
                   child: Container(decoration:  BoxDecoration(
                       color: Theme.of(context).cardColor,
-                      border: Border.all(color: Provider.of<ThemeController>(context, listen: false).darkTheme?
-                      Theme.of(context).hintColor.withValues(alpha:.25) : Theme.of(context).primaryColor.withValues(alpha:.25)),
-                      borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall)),
+                      border: Border.all(color: AsinDesign.line(context)),
+                      borderRadius: BorderRadius.circular(16)),
                     child: Stack(children: [
                       SizedBox(
-                          height: MediaQuery.of(context).size.width * 0.9,
-                          child: productModel!.imagesFullUrl != null?
-
-                          PageView.builder(
-                            controller: _controller,
-                            itemCount: productModel!.imagesFullUrl!.length,
-                            itemBuilder: (context, index) {
-                              return ClipRRect(
-                                borderRadius:BorderRadius.circular(Dimensions.paddingSizeSmall),
-                                child: Container(
-                                  color: const Color(0xFFF8FAFB),
-                                  padding: const EdgeInsets.all(8),
-                                  child: CustomImageWidget(
-                                    height: double.infinity,
-                                    width: double.infinity,
-                                    fit: BoxFit.contain,
-                                    image: '${productModel!.imagesFullUrl![index].path}',
-                                  ),
-                                ),
-                              );
-                            },
-                            onPageChanged: (index) => productController.setImageSliderSelectedIndex(index),
-                          ) : const SizedBox(),
+                        height: (MediaQuery.of(context).size.width.clamp(320.0, 560.0) * .70).toDouble(),
+                        child: images.isNotEmpty
+                            ? PageView.builder(
+                                controller: _controller,
+                                itemCount: images.length,
+                                itemBuilder: (context, index) {
+                                  return ClipRRect(
+                                    borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall),
+                                    child: Container(
+                                      color: AsinDesign.softCard(context),
+                                      padding: const EdgeInsets.all(8),
+                                      child: CustomImageWidget(
+                                        height: double.infinity,
+                                        width: double.infinity,
+                                        fit: BoxFit.contain,
+                                        image: '${images[index].path}',
+                                      ),
+                                    ),
+                                  );
+                                },
+                                onPageChanged: (index) => productController.setImageSliderSelectedIndex(index),
+                              )
+                            : Container(
+                                color: AsinDesign.softCard(context),
+                                alignment: Alignment.center,
+                                padding: const EdgeInsets.all(24),
+                                child: thumbnailPath.isNotEmpty
+                                    ? CustomImageWidget(image: thumbnailPath, fit: BoxFit.contain, width: double.infinity, height: double.infinity)
+                                    : Icon(Icons.image_not_supported_outlined, size: 62, color: Theme.of(context).hintColor),
+                              ),
                       ),
 
 
@@ -116,7 +125,7 @@ class ProductImageWidget extends StatelessWidget {
                                       right: Dimensions.paddingSizeDefault,
                                       bottom: Dimensions.paddingSizeDefault,
                                     ),
-                                    child: Text('${productController.imageSliderIndex!+1}/${productModel?.imagesFullUrl?.length}'),
+                                    child: Text(images.isEmpty ? '0/0' : '${(productController.imageSliderIndex ?? 0) + 1}/${images.length}'),
                                   )
                                 : const SizedBox(),
                           ],
@@ -127,7 +136,7 @@ class ProductImageWidget extends StatelessWidget {
                           child: Column(children: [
 
                             FavouriteButtonWidget(
-                              backgroundColor: isDarkTheme ? Theme.of(context).cardColor : Theme.of(context).primaryColor,
+                              backgroundColor: AsinDesign.card(context),
                               productId: productModel?.id,
                               fromProductDetails: true,
                             ),
@@ -216,11 +225,11 @@ class ProductImageWidget extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
                                 boxShadow: const [
                                   BoxShadow(
-                                    color: Color(0x0D1B7FED), offset: Offset(0, 6),
+                                    color: Color(0x14063D39), offset: Offset(0, 6),
                                     blurRadius: 12, spreadRadius: -3,
                                   ),
                                   BoxShadow(
-                                    color: Color(0x0D1B7FED), offset: Offset(0, -6),
+                                    color: Color(0x14063D39), offset: Offset(0, -6),
                                     blurRadius: 12, spreadRadius: -3,
                                   ),
                                 ]
@@ -264,42 +273,8 @@ class ProductImageWidget extends StatelessWidget {
               const SizedBox(),
             ),
 
-            Padding(
-              padding: EdgeInsets.only(
-                left: Provider.of<LocalizationController>(context, listen: false).isLtr ?
-                Dimensions.homePagePadding : 0,
-                right: Provider.of<LocalizationController>(context, listen: false).isLtr ?
-                0 : Dimensions.homePagePadding, bottom: Dimensions.paddingSizeLarge,
-              ),
-              child: SizedBox(height: 60, child: RepaintBoundary(child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                addAutomaticKeepAlives: false,
-                addRepaintBoundaries: false,
-                itemCount: productModel!.imagesFullUrl!.length,
-                itemBuilder: (context, index) {
-                  return InkWell(
-                    onTap: (){
-                      productController.setImageSliderSelectedIndex(index);
-                      _controller.animateToPage(index, duration: const Duration(microseconds: 50), curve:Curves.ease);
-                    },
-                    child: Padding(padding: const EdgeInsets.only(right: Dimensions.paddingSizeSmall),
-                        child: Center(child: Container(
-                            decoration: BoxDecoration(border: Border.all(width: index == productController.imageSliderIndex? 2:0,
-                                color: (index == productController.imageSliderIndex &&
-                                    Provider.of<ThemeController>(context, listen: false).darkTheme)? Theme.of(context).primaryColor:
-                                (index == productController.imageSliderIndex &&
-                                    !Provider.of<ThemeController>(context, listen: false).darkTheme)?
-                                Theme.of(context).primaryColor: const Color(0x00FFFFFF)),
-                                color: Theme.of(context).cardColor,
-                                borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall)),
-                            child: ClipRRect(borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
-                              child: CustomImageWidget(height: 50, width: 50,
-                                  image: '${productModel!.imagesFullUrl![index].path}'),
-                            )))),
-                  );
-                },
-              ))),
-            ),
+            const SizedBox(height: 10),
+
 
           ]);
         }
@@ -308,7 +283,8 @@ class ProductImageWidget extends StatelessWidget {
 
   List<Widget> _indicators(BuildContext context) {
     List<Widget> indicators = [];
-    for (int index = 0; index < productModel!.imagesFullUrl!.length; index++) {
+    final images = productModel?.imagesFullUrl ?? [];
+    for (int index = 0; index < images.length; index++) {
       indicators.add(Padding(
         padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraExtraSmall),
         child: Container(width: index == Provider.of<ProductDetailsController>(context).imageSliderIndex? 20 : 6, height: 6,

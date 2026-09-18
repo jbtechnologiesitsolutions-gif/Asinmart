@@ -6,6 +6,8 @@ import 'package:flutter_sixvalley_ecommerce/features/product/controllers/product
 import 'package:flutter_sixvalley_ecommerce/helper/debounce_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/main.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
+import 'package:flutter_sixvalley_ecommerce/helper/responsive_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
@@ -120,6 +122,7 @@ class _BrandAndCategoryProductScreenState extends State<BrandAndCategoryProductS
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AsinDesign.canvas(context),
       appBar: CustomAppBar(title: widget.name),
       body: Consumer<ProductController>(
         builder: (context, productController, child) {
@@ -147,14 +150,14 @@ class _BrandAndCategoryProductScreenState extends State<BrandAndCategoryProductS
                     isDense: true,
                     contentPadding: const EdgeInsets.only(left: Dimensions.paddingSizeLarge),
                     border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
-                        borderSide: BorderSide(color: Colors.grey[300]!)),
+                        borderRadius: BorderRadius.circular(AsinDesign.radius),
+                        borderSide: BorderSide(color: AsinDesign.line(context))),
                     focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
-                        borderSide: BorderSide(color: Colors.grey[300]!)),
+                        borderRadius: BorderRadius.circular(AsinDesign.radius),
+                        borderSide: BorderSide(color: AsinDesign.line(context))),
                     enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
-                        borderSide: BorderSide(color: Colors.grey[300]!)),
+                        borderRadius: BorderRadius.circular(AsinDesign.radius),
+                        borderSide: BorderSide(color: AsinDesign.line(context))),
                     hintText: getTranslated('search_products', context),
                     hintStyle: textRegular.copyWith(color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.9)),
                     suffixIcon: SizedBox(width: searchTextEditingController.text.isNotEmpty ? 70 : 50,
@@ -195,10 +198,10 @@ class _BrandAndCategoryProductScreenState extends State<BrandAndCategoryProductS
                             margin: const EdgeInsets.all(Dimensions.paddingSizeExtraSmall),
                             padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).primaryColor,
-                              borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
+                              color: AsinDesign.gold,
+                              borderRadius: BorderRadius.circular(AsinDesign.radius),
                             ),
-                            child: Image.asset(Images.search, color: Colors.white, height: Dimensions.iconSizeSmall, width: Dimensions.iconSizeSmall, fit: BoxFit.contain),
+                            child: Image.asset(Images.search, color: AsinDesign.primaryDeep, height: Dimensions.iconSizeSmall, width: Dimensions.iconSizeSmall, fit: BoxFit.contain),
                           ),
                         ),
                       ]),
@@ -297,7 +300,7 @@ class _BrandAndCategoryProductScreenState extends State<BrandAndCategoryProductS
                 child: MasonryGridView.count(
                   controller: _scrollController,
                   padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall).copyWith(top: Dimensions.paddingSizeExtraSmall),
-                  crossAxisCount: MediaQuery.of(context).size.width> 480 ? 3 : 2,
+                  crossAxisCount: ResponsiveHelper.productGridCount(context),
                   itemCount: productController.brandOrCategoryProductList?.products?.length ?? 0,
                   itemBuilder: (BuildContext context, int index) {
                     return ProductWidget(productModel: productController.brandOrCategoryProductList!.products![index], productNameLine: 1,);
@@ -337,22 +340,15 @@ class _CategoryItemWidget extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeEight, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).primaryColor : Theme.of(context).hintColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(Dimensions.paddingSizeEight),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              offset: const Offset(0, 1),
-              spreadRadius: 0,
-              blurRadius: 4,
-            ),
-          ],
+          color: isSelected ? AsinDesign.primary : AsinDesign.card(context),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: isSelected ? AsinDesign.primary : AsinDesign.line(context)),
         ),
         child: Center(
           child: Row(children: [
             Text(categoryName, style: isSelected ? textBold.copyWith(
                 fontSize: Dimensions.fontSizeExtraSmall,
-                color: Theme.of(context).cardColor) : textRegular.copyWith(
+                color: Colors.white) : textRegular.copyWith(
               fontSize: Dimensions.fontSizeExtraSmall,
               color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.70),
             )),
@@ -360,7 +356,7 @@ class _CategoryItemWidget extends StatelessWidget {
 
             Text(totalProductCount, style: isSelected ? textBold.copyWith(
                 fontSize: Dimensions.fontSizeExtraSmall,
-                color: Theme.of(context).cardColor.withValues(alpha: 0.70)) : textRegular.copyWith(
+                color: Colors.white.withValues(alpha: 0.70)) : textRegular.copyWith(
               fontSize: Dimensions.fontSizeExtraSmall,
               color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.70),
             )),

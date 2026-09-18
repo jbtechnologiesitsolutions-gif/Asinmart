@@ -6,6 +6,7 @@ import 'package:flutter_sixvalley_ecommerce/features/order/widgets/order_widget.
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/main.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
@@ -55,6 +56,7 @@ class _OrderScreenState extends State<OrderScreen> {
           );
         },
         child: Scaffold(
+         backgroundColor: AsinDesign.canvas(context),
          appBar: CustomAppBar(title: getTranslated('order', context), isBackButtonExist: widget.isBacButtonExist,
          onBackPressed: () {
            if(widget.fromPlaceOrder) {

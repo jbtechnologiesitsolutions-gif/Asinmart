@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakbar_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/modern_motion_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/wishlist/controllers/wishlist_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/wishlist/widgets/wishlist_shimmer.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_sixvalley_ecommerce/helper/debounce_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
@@ -48,6 +50,7 @@ class _WishListScreenState extends State<WishListScreen> {
         }
       },
       child: Scaffold(
+        backgroundColor: AsinDesign.canvas(context),
         appBar: CustomAppBar(title: getTranslated('wishList', context)),
         resizeToAvoidBottomInset: true,
         body: Column(children: [
@@ -71,22 +74,28 @@ class _WishListScreenState extends State<WishListScreen> {
                 onFieldSubmitted: (value) {
                   wishListController.getWishList(searchTextEditingController.text);
                 },
-                style: textMedium.copyWith(fontSize: Dimensions.fontSizeLarge),
+                style: textMedium.copyWith(
+                  fontSize: Dimensions.fontSizeDefault,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
                 decoration: InputDecoration(
                   isDense: true,
-                  contentPadding: const EdgeInsets.only(left: Dimensions.paddingSizeLarge),
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.surface,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: 14),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
-                    borderSide: BorderSide(color: Colors.grey[300]!)),
+                    borderRadius: BorderRadius.circular(AsinDesign.radius),
+                    borderSide: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: .65))),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
-                    borderSide: BorderSide(color: Colors.grey[300]!)),
+                    borderRadius: BorderRadius.circular(AsinDesign.radius),
+                    borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 1.4)),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
-                    borderSide: BorderSide(color: Colors.grey[300]!)),
+                    borderRadius: BorderRadius.circular(AsinDesign.radius),
+                    borderSide: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: .65))),
                   hintText: getTranslated('search_products', context),
-                  hintStyle: textRegular.copyWith(color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.9)),
-                  suffixIcon: SizedBox(width: searchTextEditingController.text.isNotEmpty ? 70 : 50,
+                  hintStyle: textRegular.copyWith(color: Theme.of(context).hintColor),
+                  prefixIcon: Icon(Icons.search_rounded, color: Theme.of(context).hintColor),
+                  suffixIcon: SizedBox(width: searchTextEditingController.text.isNotEmpty ? 76 : 52,
                     child: Row(children: [
                       if(searchTextEditingController.text.isNotEmpty)
                         InkWell(
@@ -108,10 +117,10 @@ class _WishListScreenState extends State<WishListScreen> {
                           margin: const EdgeInsets.all(Dimensions.paddingSizeExtraSmall),
                           padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor,
-                            borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
+                            color: AsinDesign.gold,
+                            borderRadius: BorderRadius.circular(AsinDesign.radius),
                           ),
-                          child: Image.asset(Images.search, color: Colors.white, height: Dimensions.iconSizeSmall, width: Dimensions.iconSizeSmall, fit: BoxFit.contain),
+                          child: Image.asset(Images.search, color: AsinDesign.primaryDeep, height: Dimensions.iconSizeSmall, width: Dimensions.iconSizeSmall, fit: BoxFit.contain),
                         ),
                       ),
                     ]),
@@ -140,7 +149,10 @@ class _WishListScreenState extends State<WishListScreen> {
             child: ListView.builder(
               padding: EdgeInsets.zero,
               itemCount: wishListProvider.wishList!.length,
-              itemBuilder: (context, index) => WishListWidget(wishlistModel: wishListProvider.wishList?[index], index: index),
+              itemBuilder: (context, index) => ModernFadeSlide(
+                delay: Duration(milliseconds: (index.clamp(0, 8) * 28).toInt()),
+                child: WishListWidget(wishlistModel: wishListProvider.wishList?[index], index: index),
+              ),
             ))
             : NoInternetOrDataScreenWidget(isNoInternet: false, message: searchTextEditingController.text.trim().isNotEmpty ? 'no_product_found' : 'no_wishlist_product', icon: Images.noWishlist)
             : const WishListShimmer();

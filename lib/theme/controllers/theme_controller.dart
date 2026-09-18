@@ -30,7 +30,7 @@ class ThemeController with ChangeNotifier {
 
   void setThemeColor({Color? primaryColor, Color? secondaryColor}) {
     selectedPrimaryColor = primaryColor;
-    selectedPrimaryColor = secondaryColor;
+    selectedSecondaryColor = secondaryColor;
 
     notifyListeners();
   }

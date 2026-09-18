@@ -17,6 +17,7 @@ import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/controllers/localization_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/main.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
@@ -110,6 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       },
       child: Scaffold(
+        backgroundColor: AsinDesign.canvas(context),
         body: SafeArea(
           child: Center(child: CustomScrollView(slivers: [
             (configModel.customerLogin?.loginOption?.manualLogin == 0 && configModel.customerLogin?.loginOption?.otpLogin == 0) ?
@@ -169,33 +171,37 @@ class _LoginScreenState extends State<LoginScreen> {
 
 
                     Column(children: [
-                      Padding(padding: const EdgeInsets.all(Dimensions.paddingSizeLarge),
+                      Padding(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                         child: Center(
                           child: Container(
-                            width: width > 700 ? 500 : width,
-                            padding: width > 700 ? const EdgeInsets.all(Dimensions.paddingSizeExtraLarge) : null,
-                            decoration: width > 700 ? BoxDecoration(
-                              color: Theme.of(context).canvasColor, borderRadius: BorderRadius.circular(10),
-                              boxShadow: [BoxShadow(color: Theme.of(context).shadowColor, blurRadius: 5, spreadRadius: 1)],
-                            ) : null,
+                            width: width > 700 ? 460 : width,
+                            padding: width > 700 ? const EdgeInsets.all(28) : null,
+                            decoration: width > 700 ? AsinDesign.cardDecoration(context, radius: 18, elevated: true) : null,
                             child: Consumer<AuthController>(
                               builder: (context, authProvider, child) => Form(
                                 key: _formKeyLogin,
                                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-                                  SizedBox(height: widget.showBackButton ? size.height * 0.1 : size.height * 0.05),
+                                  SizedBox(height: widget.showBackButton ? 52 : 22),
 
-                                  Center(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
-                                      child: Directionality(
-                                        textDirection: TextDirection.ltr,
-                                        child: Image.asset(Images.logoWithNameImage, width: 140, height: 50)
-                                      ),
+                                  Align(
+                                    alignment: AlignmentDirectional.centerStart,
+                                    child: Directionality(
+                                      textDirection: TextDirection.ltr,
+                                      child: Image.asset(Images.logoWithNameImage, width: 132, height: 44, fit: BoxFit.contain),
                                     ),
                                   ),
-
-                                  const SizedBox(height: 35),
+                                  const SizedBox(height: 24),
+                                  Text(
+                                    'Welcome Back',
+                                    style: textBold.copyWith(color: AsinDesign.foreground(context), fontSize: 27, fontWeight: FontWeight.w700),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Sign in to continue shopping with AsinMart.',
+                                    style: textRegular.copyWith(color: AsinDesign.muted(context), fontSize: 14, height: 1.35),
+                                  ),
+                                  const SizedBox(height: 28),
 
                                   Selector<AuthController, bool>(
                                     selector: (context, authProvider) => authProvider.isNumberLoginScreenText,
@@ -287,7 +293,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                               : "${getTranslated('forget_password', context)!}؟",
                                           style: Theme.of(context).textTheme.displayMedium!.copyWith(
                                             fontSize: Dimensions.fontSizeSmall,
-                                            color: Theme.of(context).primaryColor,
+                                            color: AsinDesign.gold,
                                           ),
                                         ),
                                       ),
@@ -317,6 +323,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   const SizedBox(height: 10),
 
                                   !authProvider.isLoading ? CustomButton(
+                                    isBuy: true,
                                     buttonText: getTranslated('sign_in', context),
                                     onTap: () async {
                                       String password = _passwordController!.text.trim();
@@ -466,8 +473,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                         style: Theme.of(context).textTheme.displaySmall!.copyWith(
                                           fontSize: Dimensions.fontSizeDefault,
                                           decoration: TextDecoration.underline,
-                                          decorationColor: Theme.of(context).primaryColor,
-                                          color: Theme.of(context).primaryColor,
+                                          decorationColor: AsinDesign.gold,
+                                          color: AsinDesign.gold,
                                         ),
                                       ),
                                     ),

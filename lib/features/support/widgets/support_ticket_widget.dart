@@ -1,9 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_asset_image_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/modern_motion_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/support/controllers/support_ticket_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/support/domain/models/support_ticket_model.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/date_converter.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
@@ -46,8 +48,10 @@ class SupportTicketWidget extends StatelessWidget {
 
           ],
 
-          Slidable(
-            key: const ValueKey(0),
+          ModernFadeSlide(
+            delay: Duration(milliseconds: (index.clamp(0, 8) * 24).toInt()),
+            child: Slidable(
+            key: ValueKey(supportTicketModel.id ?? index),
             endActionPane: ActionPane(extentRatio:supportTicketModel.status == 'close'? 0.01 : .25,
               motion: const ScrollMotion(),
               children: [
@@ -70,16 +74,11 @@ class SupportTicketWidget extends StatelessWidget {
               ),
               child: Container(
                 padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
+                margin: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.black.withValues(alpha:0.05),
-                        spreadRadius: 0,
-                        blurRadius: 7,
-                        offset: const Offset(0, 1)
-                    ),
-                  ],
+                  color: AsinDesign.card(context),
+                  borderRadius: BorderRadius.circular(AsinDesign.radius),
+                  border: Border.all(color: AsinDesign.line(context)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,10 +103,10 @@ class SupportTicketWidget extends StatelessWidget {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
                           color: supportTicketModel.status == 'open'
-                              ? Theme.of(context).colorScheme.onTertiaryContainer.withValues(alpha:.125)
+                              ? AsinDesign.primarySoft
                               : supportTicketModel.status == 'pending'
-                              ? Theme.of(context).colorScheme.outline.withValues(alpha:.125)
-                              : Theme.of(context).colorScheme.error.withValues(alpha:.125),
+                              ? AsinDesign.goldSoft
+                              : AsinDesign.discountSoft,
                         ),
                         child: Text(
                           supportTicketModel.status == 'pending'
@@ -117,10 +116,10 @@ class SupportTicketWidget extends StatelessWidget {
                               : getTranslated('closed', context)!,
                           style: textMedium.copyWith(
                             color: supportTicketModel.status == 'open'
-                                ? Theme.of(context).colorScheme.onTertiaryContainer
+                                ? AsinDesign.primary
                                 : supportTicketModel.status == 'pending'
-                                ? Theme.of(context).colorScheme.outline
-                                : Theme.of(context).colorScheme.error,
+                                ? AsinDesign.primary
+                                : AsinDesign.discount,
                             fontSize: Dimensions.fontSizeSmall,
                           ),
                         ),
@@ -150,10 +149,10 @@ class SupportTicketWidget extends StatelessWidget {
 
                         style: textBold.copyWith(
                         color: supportTicketModel.priority == 'High'
-                            ? Colors.amber : supportTicketModel.priority == 'Urgent'
-                            ? Theme.of(context).colorScheme.error
+                            ? AsinDesign.star : supportTicketModel.priority == 'Urgent'
+                            ? AsinDesign.discount
                             : (supportTicketModel.priority == 'Low' || supportTicketModel.priority == 'low')
-                            ? Theme.of(context).primaryColor : Colors.greenAccent,
+                            ? AsinDesign.primary : AsinDesign.success,
                       ))),
 
                       Text(
@@ -169,6 +168,7 @@ class SupportTicketWidget extends StatelessWidget {
                 ),
               ),
             ),
+          ),
           ),
         ]);
       }

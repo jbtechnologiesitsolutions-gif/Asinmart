@@ -22,6 +22,7 @@ import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dar
 import 'package:flutter_sixvalley_ecommerce/features/cart/controllers/cart_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/main.dart';
 import 'package:flutter_sixvalley_ecommerce/theme/controllers/theme_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_button_widget.dart';
@@ -59,7 +60,7 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
         Container(
           padding: const EdgeInsets.only(top : Dimensions.paddingSizeSmall),
           decoration: BoxDecoration(color: Theme.of(context).highlightColor,
-              borderRadius: const BorderRadius.only(topRight: Radius.circular(20), topLeft: Radius.circular(20))),
+              borderRadius: const BorderRadius.only(topRight: Radius.circular(24), topLeft: Radius.circular(24))),
           child: Consumer<ProductDetailsController>(
             builder: (ctx, productDetailsController, child) {
               List<String> variationFileType = [];
@@ -72,8 +73,14 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
       
       
               if(widget.product != null && widget.product!.colorImagesFullUrl != null && widget.product!.colorImagesFullUrl!.isNotEmpty){
+                final colors = widget.product!.colors ?? [];
+                final colorIndex = productDetailsController.variantIndex ?? 0;
+                String selectedColorCode = '';
+                if(colorIndex >= 0 && colorIndex < colors.length) {
+                  selectedColorCode = (colors[colorIndex].code ?? '').replaceFirst('#', '').trim();
+                }
                 for(int i=0; i< widget.product!.colorImagesFullUrl!.length; i++){
-                  if(widget.product!.colorImagesFullUrl![i].color == '${widget.product!.colors?[productDetailsController.variantIndex??0].code?.substring(1, 7)}'){
+                  if(selectedColorCode.isNotEmpty && widget.product!.colorImagesFullUrl![i].color == selectedColorCode){
                     colorWiseSelectedImage = widget.product!.colorImagesFullUrl![i].imageName?.path;
                   }
                 }
@@ -112,30 +119,41 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
               }
       
               if(widget.product?.digitalProductExtensions != null){
-                widget.product?.digitalProductExtensions?.keys.forEach((key) {
-                  variationFileType.add(key);
-                  extensions.add(widget.product?.digitalProductExtensions?[key]);
-                }
-                );
+                widget.product?.digitalProductExtensions?.forEach((key, values) {
+                  final cleanKey = key.trim();
+                  final cleanValues = values is List
+                      ? values.map((value) => value.toString().trim()).where((value) => value.isNotEmpty).toList()
+                      : <String>[];
+                  if(cleanKey.isNotEmpty && cleanValues.isNotEmpty) {
+                    variationFileType.add(cleanKey);
+                    extensions.add(cleanValues);
+                  }
+                });
               }
       
               double? price = widget.product!.unitPrice;
-              int? stock = widget.product!.currentStock;
+              int stock = widget.product!.currentStock ?? 0;
+              final int minimumOrderQty = widget.product!.minimumOrderQty ?? 1;
               variationType = variationType.replaceAll(' ', '');
               for(Variation variation in (widget.product!.variation ?? <Variation>[])) {
                 if(variation.type == variationType) {
                   price = variation.price;
                   variation = variation;
-                  stock = variation.qty;
+                  stock = variation.qty ?? stock;
                   break;
                 }
               }
       
               if(variationFileType.isNotEmpty && extensions.isNotEmpty) {
-                variantKey = '${variationFileType[productDetailsController.digitalVariationIndex!]}-${extensions[productDetailsController.digitalVariationIndex!][productDetailsController.digitalVariationSubindex!]}';
-                for (int i=0; i<widget.product!.digitalVariation!.length; i++) {
-                  if(widget.product!.digitalVariation?[i].variantKey == variantKey){
-                    price = double.tryParse(widget.product!.digitalVariation![i].price.toString());
+                final digitalIndex = (productDetailsController.digitalVariationIndex ?? 0).clamp(0, variationFileType.length - 1).toInt();
+                final currentExtensions = extensions[digitalIndex];
+                if(currentExtensions.isNotEmpty) {
+                  final subIndex = (productDetailsController.digitalVariationSubindex ?? 0).clamp(0, currentExtensions.length - 1).toInt();
+                  variantKey = '${variationFileType[digitalIndex]}-${currentExtensions[subIndex]}';
+                  for (final digitalVariation in (widget.product!.digitalVariation ?? <DigitalVariation>[])) {
+                    if(digitalVariation.variantKey == variantKey){
+                      price = double.tryParse(digitalVariation.price.toString());
+                    }
                   }
                 }
               }
@@ -155,12 +173,14 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
               double priceWithQuantity = priceWithDiscount * productDetailsController.quantity!;
       
               double total = 0, avg = 0;
-              for (var review in widget.product!.reviews!) {
-                total += review.rating!;
+              final reviews = widget.product!.reviews ?? [];
+              if(reviews.isNotEmpty) {
+                for (final review in reviews) {
+                  total += review.rating ?? 0;
+                }
+                avg = total / reviews.length;
               }
-              avg = total /widget.product!.reviews!.length;
-              String ratting = widget.product!.reviews != null && widget.product!.reviews!.isNotEmpty?
-              avg.toString() : "0";
+              String ratting = reviews.isNotEmpty ? avg.toString() : "0";
       
               CartModelBody cart = CartModelBody(
                   productId: widget.product!.id,
@@ -431,7 +451,7 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
                       (widget.product!.colors != null && widget.product!.colors!.isNotEmpty) ?
                       const SizedBox(height: Dimensions.paddingSizeSmall) : const SizedBox(),
       
-                      // Variation
+                      // Variation / size selector
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: Dimensions.homePagePadding),
                         child: ListView.builder(
@@ -440,64 +460,102 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
                           physics: const NeverScrollableScrollPhysics(),
                           itemBuilder: (ctx, index) {
                             final choice = choiceOptions[index];
+                            final rawOptions = choice.options ?? <String>[];
+                            final optionIndexes = <int>[
+                              for (int optionIndex = 0; optionIndex < rawOptions.length; optionIndex++)
+                                if (rawOptions[optionIndex].trim().isNotEmpty) optionIndex,
+                            ];
+                            if(optionIndexes.isEmpty) return const SizedBox.shrink();
 
-                            return Column(
-                              children: [
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '${choice.title?.toCapitalized() ?? 'Option'}',
-                                      style: titilliumRegular.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).textTheme.titleMedium?.color)
-                                    ),
-                                    const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+                            final title = (choice.title ?? choice.name ?? 'Option').trim();
+                            final bool isSize = title.toLowerCase().contains('size');
 
-                                    /// Grid of options
-                                    Expanded(
-                                      child:  Wrap(
-                                        spacing: 8, // horizontal spacing between options
-                                        runSpacing: 8, // vertical spacing between rows
-                                        children: List.generate(choice.options?.length ?? 0, (i) {
-                                          final option = choice.options![i].trim();
-                                          final isSelected = productDetailsController.variationIndex != null && index < productDetailsController.variationIndex!.length && productDetailsController.variationIndex![index] == i;
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeDefault),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        isSize ? 'Select Size' : 'Select ${title.toCapitalized()}',
+                                        style: textBold.copyWith(
+                                          fontSize: Dimensions.fontSizeDefault,
+                                          color: Theme.of(context).textTheme.titleMedium?.color,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      if(isSize)
+                                        Text(
+                                          'Required',
+                                          style: textMedium.copyWith(
+                                            fontSize: Dimensions.fontSizeExtraSmall,
+                                            color: AsinDesign.textMuted,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Wrap(
+                                    spacing: 9,
+                                    runSpacing: 9,
+                                    children: List.generate(optionIndexes.length, (position) {
+                                      final i = optionIndexes[position];
+                                      final option = rawOptions[i].trim();
+                                      final isSelected = productDetailsController.variationIndex != null &&
+                                          index < productDetailsController.variationIndex!.length &&
+                                          productDetailsController.variationIndex![index] == i;
+                                      final dark = Theme.of(context).brightness == Brightness.dark;
 
-                                          return InkWell(
-                                            onTap: () => productDetailsController.setCartVariationIndex(widget.product!.minimumOrderQty ?? 1, index, i, context),
-                                            child: Container(
-                                              constraints: const BoxConstraints(minWidth: 46, minHeight: 40),
-                                              alignment: Alignment.center,
-                                              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
-                                              decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(10),
-                                                color: isSelected
-                                                  ? const Color(0xFFEAF4F1)
-                                                  : Colors.white,
-                                                border: Border.all(
-                                                  width: 1,
-                                                  color: isSelected ? const Color(0xFF063D39) : Theme.of(context).hintColor.withValues(alpha: .35),
-                                                ),
-                                              ),
-                                              child: Text(
+                                      return InkWell(
+                                        onTap: () => productDetailsController.setCartVariationIndex(
+                                          widget.product!.minimumOrderQty ?? 1, index, i, context,
+                                        ),
+                                        borderRadius: BorderRadius.circular(9),
+                                        child: AnimatedContainer(
+                                          duration: const Duration(milliseconds: 160),
+                                          constraints: const BoxConstraints(minWidth: 52, minHeight: 42),
+                                          alignment: Alignment.center,
+                                          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 9),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(9),
+                                            color: isSelected
+                                                ? AsinDesign.primary
+                                                : (dark ? Theme.of(context).cardColor : Colors.white),
+                                            border: Border.all(
+                                              width: isSelected ? 1.5 : 1,
+                                              color: isSelected
+                                                  ? AsinDesign.gold
+                                                  : Theme.of(context).hintColor.withValues(alpha: .30),
+                                            ),
+                                            boxShadow: isSelected
+                                                ? [BoxShadow(color: AsinDesign.primary.withValues(alpha: .16), blurRadius: 8, offset: const Offset(0, 3))]
+                                                : null,
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              if(isSelected) ...[
+                                                const Icon(Icons.check_rounded, color: Color(0xFFF5B82E), size: 15),
+                                                const SizedBox(width: 4),
+                                              ],
+                                              Text(
                                                 option,
-                                                style: titleRegular.copyWith(
+                                                style: textBold.copyWith(
                                                   fontSize: Dimensions.fontSizeDefault,
                                                   color: isSelected
-                                                    ? const Color(0xFF063D39)
-                                                    : Theme.of(context).textTheme.titleMedium?.color,
-                                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,                                               ),
+                                                      ? Colors.white
+                                                      : Theme.of(context).textTheme.titleMedium?.color,
+                                                ),
                                               ),
-                                            ),
-                                          );
-                                        }),
-                                      ),
-                                    ),
-                                  ]
-                                ),
-
-                                if((choiceOptions.length - 1) > index)
-                                SizedBox(height: Dimensions.paddingSizeLarge),
-
-                              ],
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                  ),
+                                ],
+                              ),
                             );
                           },
                         ),
@@ -617,7 +675,7 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
                   ])),
                 const SizedBox(height: Dimensions.paddingSizeSmall),
       
-                (stock! <= 0 && widget.product!.productType == "physical") ?  Provider.of<AuthController>(context, listen: false).isLoggedIn() ?
+                (stock <= 0 && widget.product!.productType == "physical") ?  Provider.of<AuthController>(context, listen: false).isLoggedIn() ?
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeExtraSmall),
                   child: CustomButton(
@@ -628,11 +686,11 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
                     borderColor: Theme.of(context).primaryColor,
                     loadingColor : Theme.of(context).primaryColor,
                     radius: Dimensions.radiusDefault,
-                    buttonText: ((widget.product!.choiceOptions!.isEmpty && widget.product!.colors!.isEmpty) ? widget.product!.isRestockRequested == 1 : variationRestockRequested) ?
+                    buttonText: ((choiceOptions.isEmpty && (widget.product!.colors?.isEmpty ?? true)) ? widget.product!.isRestockRequested == 1 : variationRestockRequested) ?
                     getTranslated('restock_requested', context) : getTranslated('request_restock', context),
-                    onTap: ((widget.product!.choiceOptions!.isEmpty && widget.product!.colors!.isEmpty) ? widget.product!.isRestockRequested == 1 : variationRestockRequested) ? null : () {
+                    onTap: ((choiceOptions.isEmpty && (widget.product!.colors?.isEmpty ?? true)) ? widget.product!.isRestockRequested == 1 : variationRestockRequested) ? null : () {
                       Provider.of<CartController>(context, listen: false).restockRequest(
-                          cart, context, widget.product!.choiceOptions!, productDetailsController.variationIndex, variationType: variationType);
+                          cart, context, choiceOptions, productDetailsController.variationIndex, variationType: variationType);
                     },
                   ),
                 ) :
@@ -659,7 +717,7 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
       
                       Expanded(child: Consumer<SplashController>(builder: (context, configProvider,_) {
                         return CustomButton(
-                          isBuy:true, radius: 6,
+                          isBuy:true, radius: AsinDesign.radius,
                           buttonText: getTranslated(stock == 0  && widget.product!.productType == "physical" ? 'out_of_stock' : 'buy_now', context),
                           onTap:() async {
                             final bool isLoggedIn = Provider.of<AuthController>(context, listen: false).isLoggedIn();
@@ -669,16 +727,16 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
                                 backgroundColor: Colors.transparent,
                                 context:context, builder: (_)=> const NotLoggedInBottomSheetWidget(fromPage: RouterHelper.productDetailsScreen),
                               );
-                            } else if( stock! < widget.product!.minimumOrderQty!  &&  widget.product!.productType == "physical" ) {
+                            } else if( stock < minimumOrderQty  &&  widget.product!.productType == "physical" ) {
                               showCustomSnackBarWidget(getTranslated('out_of_stock', context), context, snackBarType: SnackBarType.warning);
-                            } else if(stock >= widget.product!.minimumOrderQty! || widget.product!.productType == "digital") {
+                            } else if(stock >= minimumOrderQty || widget.product!.productType == "digital") {
                               final ApiResponseModel apiResponse = await  Provider.of<CartController>(context, listen: false).addToCartAPI(
-                                cart, context, widget.product!.choiceOptions!,
+                                cart, context, choiceOptions,
                                 productDetailsController.variationIndex, buyNow: 1,
                               );
       
                               if(apiResponse.response?.statusCode == 200){
-                                _onTapBuyNow(cart, Get.context!, widget.product!.choiceOptions!, productDetailsController.variationIndex, apiResponse.response);
+                                _onTapBuyNow(cart, Get.context!, choiceOptions, productDetailsController.variationIndex, apiResponse.response);
       
                               }}},
                         );
@@ -686,7 +744,7 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
                       const SizedBox(width: Dimensions.paddingSizeDefault),
       
                       Expanded(child: CustomButton(
-                        radius: 6,
+                        radius: AsinDesign.radius,
                         buttonText: getTranslated(stock == 0 && widget.product!.productType == "physical"? 'out_of_stock' : 'add_to_cart', context),
                         onTap: () {
       
@@ -695,11 +753,11 @@ class CartBottomSheetWidgetState extends State<CartBottomSheetWidget> {
                             return;
                           }
       
-                          if( stock! < widget.product!.minimumOrderQty!  &&  widget.product!.productType == "physical" ){
+                          if( stock < minimumOrderQty  &&  widget.product!.productType == "physical" ){
                             showCustomSnackBarWidget(getTranslated('out_of_stock', context), context, snackBarType: SnackBarType.warning);
-                          } else if(stock >= widget.product!.minimumOrderQty!  || widget.product!.productType == "digital") {
+                          } else if(stock >= minimumOrderQty  || widget.product!.productType == "digital") {
                             Provider.of<CartController>(context, listen: false).addToCartAPI(
-                              cart, context, widget.product!.choiceOptions!,
+                              cart, context, choiceOptions,
                               productDetailsController.variationIndex,
                             );
                           }},
@@ -862,7 +920,7 @@ class QuantityButton extends StatelessWidget {
 //       Container(
 //         padding: const EdgeInsets.only(top : Dimensions.paddingSizeSmall),
 //         decoration: BoxDecoration(color: Theme.of(context).highlightColor,
-//             borderRadius: const BorderRadius.only(topRight: Radius.circular(20), topLeft: Radius.circular(20))),
+//             borderRadius: const BorderRadius.only(topRight: Radius.circular(24), topLeft: Radius.circular(24))),
 //         child: Consumer<ProductDetailsController>(
 //           builder: (ctx, productDetailsController, child) {
 //             List<String> variationFileType = [];
@@ -922,7 +980,7 @@ class QuantityButton extends StatelessWidget {
 //               if(variation.type == variationType) {
 //                 price = variation.price;
 //                 variation = variation;
-//                 stock = variation.qty;
+//                 stock = variation.qty ?? stock;
 //                 break;
 //               }
 //             }
@@ -1305,7 +1363,7 @@ class QuantityButton extends StatelessWidget {
 //                             style: titilliumRegular.copyWith(color: Theme.of(context).hintColor, fontSize: Dimensions.fontSizeDefault)))])),
 //               const SizedBox(height: Dimensions.paddingSizeSmall),
 //
-//               (stock! <= 0 && widget.product!.productType == "physical") ?  Provider.of<AuthController>(context, listen: false).isLoggedIn() ?
+//               (stock <= 0 && widget.product!.productType == "physical") ?  Provider.of<AuthController>(context, listen: false).isLoggedIn() ?
 //               Padding(
 //                 padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault, vertical: Dimensions.paddingSizeExtraSmall),
 //                 child: CustomButton(
@@ -1316,11 +1374,11 @@ class QuantityButton extends StatelessWidget {
 //                   borderColor: Theme.of(context).primaryColor,
 //                   loadingColor : Theme.of(context).primaryColor,
 //                   radius: Dimensions.radiusDefault,
-//                   buttonText: ((widget.product!.choiceOptions!.isEmpty && widget.product!.colors!.isEmpty) ? widget.product!.isRestockRequested == 1 : variationRestockRequested) ?
+//                   buttonText: ((choiceOptions.isEmpty && (widget.product!.colors?.isEmpty ?? true)) ? widget.product!.isRestockRequested == 1 : variationRestockRequested) ?
 //                   getTranslated('restock_requested', context) : getTranslated('request_restock', context),
-//                   onTap: ((widget.product!.choiceOptions!.isEmpty && widget.product!.colors!.isEmpty) ? widget.product!.isRestockRequested == 1 : variationRestockRequested) ? null : () {
+//                   onTap: ((choiceOptions.isEmpty && (widget.product!.colors?.isEmpty ?? true)) ? widget.product!.isRestockRequested == 1 : variationRestockRequested) ? null : () {
 //                     Provider.of<CartController>(context, listen: false).restockRequest(
-//                         cart, context, widget.product!.choiceOptions!, productDetailsController.variationIndex, variationType: variationType);
+//                         cart, context, choiceOptions, productDetailsController.variationIndex, variationType: variationType);
 //                   },
 //                 ),
 //               ) :
@@ -1347,7 +1405,7 @@ class QuantityButton extends StatelessWidget {
 //
 //                     Expanded(child: Consumer<SplashController>(builder: (context, configProvider,_) {
 //                       return CustomButton(
-//                         isBuy:true, radius: 6,
+//                         isBuy:true, radius: AsinDesign.radius,
 //                         buttonText: getTranslated(stock == 0  && widget.product!.productType == "physical" ? 'out_of_stock' : 'buy_now', context),
 //                         onTap:() async {
 //                           final bool isLoggedIn = Provider.of<AuthController>(context, listen: false).isLoggedIn();
@@ -1358,17 +1416,17 @@ class QuantityButton extends StatelessWidget {
 //                               context:context, builder: (_)=> const NotLoggedInBottomSheetWidget(),
 //                             );
 //
-//                           }else if( stock! < widget.product!.minimumOrderQty!  &&  widget.product!.productType == "physical" ){
+//                           }else if( stock < minimumOrderQty  &&  widget.product!.productType == "physical" ){
 //                             showCustomSnackBar(getTranslated('out_of_stock', context), context);
 //
-//                           } else if(stock >= widget.product!.minimumOrderQty! || widget.product!.productType == "digital") {
+//                           } else if(stock >= minimumOrderQty || widget.product!.productType == "digital") {
 //                             final ApiResponseModel apiResponse = await  Provider.of<CartController>(context, listen: false).addToCartAPI(
 //                               cart, context, widget.product!.choiceOptions!,
 //                               productDetailsController.variationIndex, buyNow: 1,
 //                             );
 //
 //                             if(apiResponse.response?.statusCode == 200){
-//                               _onTapBuyNow(cart, Get.context!, widget.product!.choiceOptions!, productDetailsController.variationIndex, apiResponse.response);
+//                               _onTapBuyNow(cart, Get.context!, choiceOptions, productDetailsController.variationIndex, apiResponse.response);
 //
 //                             }}},
 //                       );
@@ -1385,10 +1443,10 @@ class QuantityButton extends StatelessWidget {
 //                           return;
 //                         }
 //
-//                         if( stock! < widget.product!.minimumOrderQty!  &&  widget.product!.productType == "physical" ){
+//                         if( stock < minimumOrderQty  &&  widget.product!.productType == "physical" ){
 //                           showCustomSnackBar(getTranslated('out_of_stock', context), context);
 //
-//                         } else if(stock >= widget.product!.minimumOrderQty!  || widget.product!.productType == "digital") {
+//                         } else if(stock >= minimumOrderQty  || widget.product!.productType == "digital") {
 //                           Provider.of<CartController>(context, listen: false).addToCartAPI(
 //                             cart, context, widget.product!.choiceOptions!,
 //                             productDetailsController.variationIndex,

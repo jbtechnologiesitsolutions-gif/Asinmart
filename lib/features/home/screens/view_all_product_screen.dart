@@ -59,7 +59,7 @@ class _ViewAllProductScreenState extends State<ViewAllProductScreen> {
               itemView: Expanded(child: MasonryGridView.count(
                 controller: _scrollController,
                 itemCount: productController.allProductModel?.products?.length ?? 0,
-                crossAxisCount: ResponsiveHelper.isTab(context) ? 3 : 2,
+                crossAxisCount: ResponsiveHelper.productGridCount(context),
                 padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall).copyWith(bottom: Dimensions.paddingSizeDefault),
                 itemBuilder: (BuildContext context, int index) {
                   return ProductWidget(productModel: productController.allProductModel!.products![index]);

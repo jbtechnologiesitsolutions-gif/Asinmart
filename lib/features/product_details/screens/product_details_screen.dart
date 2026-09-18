@@ -23,6 +23,7 @@ import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_c
 import 'package:flutter_sixvalley_ecommerce/helper/product_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/title_row_widget.dart';
@@ -81,8 +82,9 @@ class _ProductDetailsState extends State<ProductDetails> {
         }
       },
       child: Scaffold(
+        backgroundColor: AsinDesign.canvas(context),
         appBar: CustomAppBar(
-          title: getTranslated('product_details', context),
+          title: 'Details',
           onBackPressed: () {
             if(Navigator.of(context).canPop()){
               Navigator.of(context).pop();
@@ -137,7 +139,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                         child: Container(
                           padding: EdgeInsets.all(Dimensions.paddingSizeSmall),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.tertiary.withValues(alpha: 0.25),
+                            color: AsinDesign.goldSoft,
                             borderRadius: BorderRadius.circular(Dimensions.radiusSmall)
                           ),
                           child: Row(
@@ -241,7 +243,9 @@ class _ProductDetailsState extends State<ProductDetails> {
                       (details.productDetailsModel?.details != null && details.productDetailsModel!.details!.isNotEmpty) ?
                       Container(
                         decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
+                          color: AsinDesign.card(context),
+                          border: Border.all(color: AsinDesign.line(context)),
+                          borderRadius: BorderRadius.circular(AsinDesign.radius),
                         ),
                         margin: const EdgeInsets.only(top: Dimensions.paddingSizeSmall),
                         padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall, horizontal: Dimensions.paddingSizeDefault),
@@ -265,7 +269,7 @@ class _ProductDetailsState extends State<ProductDetails> {
 
                       Container(
                         padding: const EdgeInsets.only(top: Dimensions.paddingSizeLarge, bottom: Dimensions.paddingSizeDefault),
-                        decoration: BoxDecoration(color: Theme.of(context).cardColor),
+                        decoration: BoxDecoration(color: AsinDesign.card(context), border: Border.all(color: AsinDesign.line(context)), borderRadius: BorderRadius.circular(AsinDesign.radius)),
                         child: const PromiseWidget()
                       ),
 

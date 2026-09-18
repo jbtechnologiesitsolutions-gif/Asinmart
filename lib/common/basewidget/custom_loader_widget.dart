@@ -1,8 +1,5 @@
-
 import 'package:flutter/material.dart';
-import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-
 
 class CustomLoaderWidget extends StatelessWidget {
   final double height;
@@ -10,22 +7,32 @@ class CustomLoaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox( height: height,
-      child: Stack( children: [
-          Align( alignment: Alignment.center,
-            child: Container(
-                height: 80,width: 80, decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-                borderRadius: BorderRadius.circular(Dimensions.paddingSizeDefault)),
-
-                child: const Center(
-                  child: SpinKitCircle(
-                    color: Colors.white,
-                    size: 50.0,
-                  ),
-                )),
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return SizedBox(
+      height: height,
+      child: Center(
+        child: Container(
+          width: 70,
+          height: 70,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Theme.of(context).dividerColor),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: dark ? .24 : .08),
+                blurRadius: 24,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
-        ],
+          child: Center(
+            child: SpinKitThreeBounce(
+              color: Theme.of(context).primaryColor,
+              size: 24,
+            ),
+          ),
+        ),
       ),
     );
   }

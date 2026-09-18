@@ -8,6 +8,7 @@ import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_c
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/features/search_product/controllers/search_product_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/theme/controllers/theme_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
@@ -44,12 +45,12 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
 
     return Scaffold(
+      backgroundColor: AsinDesign.canvas(context),
       appBar: CustomAppBar(title: getTranslated('search_product', context)),
       body: CustomScrollView(slivers: [
           SliverToBoxAdapter(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Container(padding: const EdgeInsets.only(top: Dimensions.paddingSizeSmall),
-              decoration: BoxDecoration(color: Theme.of(context).canvasColor,
-              boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha:0.1), spreadRadius: 1, blurRadius: 3, offset: const Offset(0, 1),)]),
+              decoration: BoxDecoration(color: AsinDesign.card(context), border: Border(bottom: BorderSide(color: AsinDesign.line(context)))),
               child: const SearchSuggestion()),
 
             //const SizedBox(height: Dimensions.paddingSizeDefault),
@@ -86,8 +87,9 @@ class _SearchScreenState extends State<SearchScreen> {
                                 children: [for (int index =0; index < searchProvider.historyList.length; index++)
                                   Padding(padding:  const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
                                     child: Container(decoration: BoxDecoration(
-                                      borderRadius: const BorderRadius.all(Radius.circular(50)),
-                                      color: Provider.of<ThemeController>(context, listen: false).darkTheme? Colors.grey.withValues(alpha:0.2): Theme.of(context).colorScheme.onPrimary.withValues(alpha:.1)),
+                                      borderRadius: const BorderRadius.all(Radius.circular(999)),
+                                      color: AsinDesign.card(context),
+                                      border: Border.all(color: AsinDesign.line(context))),
                                       padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall-3, horizontal: Dimensions.paddingSizeSmall),
                                       margin: const EdgeInsets.only(right: Dimensions.paddingSizeSmall),
                                       child: InkWell(onTap: () => searchProvider.searchProduct( query : searchProvider.historyList[index], offset: 1),
@@ -125,7 +127,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           children: [for (int index = 0; index < popularTagProvider.configModel!.popularTags!.length; index++)
                             Padding(padding:  const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
                               child: Container(decoration: BoxDecoration(
-                                  border: Border.all(width: .5, color: Theme.of(context).primaryColor.withValues(alpha:.125)),
+                                  border: Border.all(width: 1, color: AsinDesign.line(context)),
                                   borderRadius: const BorderRadius.all(Radius.circular(50))),
                                 padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall-3, horizontal: Dimensions.paddingSizeSmall),
                                 margin: const EdgeInsets.only(right: Dimensions.paddingSizeSmall),

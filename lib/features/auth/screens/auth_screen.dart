@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/modern_motion_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/controllers/localization_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
@@ -42,75 +44,64 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
       },
 
       child: Scaffold(
-        body: Consumer<AuthController>(
-          builder: (context, authProvider,_) {
-            return Column(children: [
-                Stack(children: [
-                  Container(height: 150, decoration: BoxDecoration(color: Theme.of(context).primaryColor)),
-                  Image.asset(Images.loginBg,fit: BoxFit.cover,height: 150, opacity : const AlwaysStoppedAnimation(.15)),
-
-                  if(widget.referCode != null)
-                  Positioned(
-                    top: Dimensions.paddingSizeButton,
-                    left:  Provider.of<LocalizationController>(context, listen: false).isLtr ? Dimensions.paddingSizeLarge : null,
-                    right: Provider.of<LocalizationController>(context, listen: false).isLtr ? null : Dimensions.paddingSizeLarge,
-                    child: IconButton(
-                      icon: Icon(Icons.arrow_back_ios, size: 20, color: Theme.of(context).cardColor),
-                      onPressed: () {
-                        if(widget.referCode != null) {
-                          RouterHelper.getDashboardRoute(action: RouteAction.pushNamedAndRemoveUntil);
-                        } else {
-                          Navigator.of(context).pop();
-                        }
-                      },
-                    )
-                  ),
-
-                  Padding(padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * .03),
-                    child: Column(
-                      children: [
-                        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-
-                          Image.asset(Images.logoWithNameImageWhite, width: 130, height: 80)]),
-
-                        Text(getTranslated('sign_up', context)!, style: titilliumRegular.copyWith(
-                          color: Theme.of(context).highlightColor,
-                          fontSize: Dimensions.fontSizeLarge,
-                        )),
-                      ],
-                    ),
-                  ),
-                ]),
-
-                AnimatedContainer(transform: Matrix4.translationValues(0, -12, 0),
-                  curve: Curves.fastOutSlowIn,
-                  decoration: BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(Dimensions.radiusExtraLarge))),
-                  duration: const Duration(seconds: 2),
-                  child: Padding(padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeExtraSmall),
-                    child: Column(mainAxisSize: MainAxisSize.min, children: [
-                      Padding(padding: const EdgeInsets.symmetric(horizontal:  Dimensions.marginSizeLarge),
-                        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                          InkWell(onTap: (){},
-                            child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-                              Container(height: 0, width: 25, margin: const EdgeInsets.only(top: 8),
-                                decoration: BoxDecoration(borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall),
-                                color: Theme.of(context).primaryColor))
-                            ]),
+        backgroundColor: AsinDesign.canvas(context),
+        body: SafeArea(
+          child: Consumer<AuthController>(
+            builder: (context, authProvider, _) {
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 520),
+                  child: Column(
+                    children: [
+                      if (widget.referCode != null)
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: IconButton(
+                            icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AsinDesign.foreground(context)),
+                            onPressed: () => RouterHelper.getDashboardRoute(action: RouteAction.pushNamedAndRemoveUntil),
                           ),
-                        ]),
+                        )
+                      else
+                        const SizedBox(height: 8),
+                      Expanded(
+                        child: ModernFadeSlide(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.fromLTRB(24, 12, 24, 30),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Directionality(
+                                  textDirection: TextDirection.ltr,
+                                  child: Image.asset(Images.logoWithNameImage, width: 132, height: 44, fit: BoxFit.contain),
+                                ),
+                                const SizedBox(height: 20),
+                                Text(
+                                  'Create Account',
+                                  style: textBold.copyWith(color: AsinDesign.foreground(context), fontSize: 26, fontWeight: FontWeight.w700),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Join AsinMart for a faster and more personal shopping experience.',
+                                  style: textRegular.copyWith(color: AsinDesign.muted(context), fontSize: 14, height: 1.35),
+                                ),
+                                const SizedBox(height: 20),
+                                SignUpWidget(
+                                  fromLogout: widget.fromLogout,
+                                  fromPage: widget.fromPage,
+                                  onLoginSuccess: widget.onLoginSuccess,
+                                  referCode: widget.referCode,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
-                    ],),
+                    ],
                   ),
                 ),
-
-              Expanded(child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, ),
-                //child: authProvider.selectedIndex == 0 ? const SignInWidget() : const SignUpWidget(),
-                child: SignUpWidget(fromLogout: widget.fromLogout, fromPage: widget.fromPage, onLoginSuccess: widget.onLoginSuccess, referCode: widget.referCode),
-              )),
-            ]);
-          }
+              );
+            },
+          ),
         ),
       ),
     );

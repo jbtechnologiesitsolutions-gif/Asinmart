@@ -34,11 +34,11 @@ class SliderProductWidget extends StatelessWidget {
     },
       child: AnimatedContainer(
         margin:  EdgeInsets.symmetric(vertical : isCurrentIndex ? Dimensions.paddingSizeExtraSmall : 45),
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(18),
           color: Theme.of(context).cardColor,
-          border: Border.all(color: Theme.of(context).colorScheme.onTertiary),
+          border: Border.all(color: Theme.of(context).dividerColor),
           boxShadow: [
-            BoxShadow(color: Theme.of(context).primaryColor.withValues(alpha:0.05), blurRadius: 10, spreadRadius: 0, offset: const Offset(0, 0) )
+            BoxShadow(color: Colors.black.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? .18 : .06), blurRadius: 20, spreadRadius: 0, offset: const Offset(0, 7))
           ],
         ),
         duration: const Duration(milliseconds: 500),
@@ -57,11 +57,11 @@ class SliderProductWidget extends StatelessWidget {
                           height:constrains.maxWidth * 0.9,
                           decoration: BoxDecoration(
                             border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha:.1)),
-                            color: Theme.of(context).highlightColor,
-                            borderRadius: const BorderRadius.all(Radius.circular(10)),
+                            color: Theme.of(context).colorScheme.surface,
+                            borderRadius: const BorderRadius.all(Radius.circular(14)),
                           ),
                           child: ClipRRect(
-                            borderRadius: const BorderRadius.all( Radius.circular(10)),
+                            borderRadius: const BorderRadius.all(Radius.circular(14)),
                             child: Stack(
                               children: [
                                 CustomImageWidget(
@@ -71,7 +71,7 @@ class SliderProductWidget extends StatelessWidget {
                                   height:constrains.maxWidth * 0.9,
                                 ),
 
-                                if(product.currentStock! == 0 && product.productType == 'physical')...[
+                                if((product.currentStock ?? 0) == 0 && product.productType == 'physical')...[
                                   Container(
                                     color: Colors.black.withValues(alpha:0.4),
                                   ),

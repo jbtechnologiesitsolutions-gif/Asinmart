@@ -35,7 +35,7 @@ class _CouponItemWidgetState extends State<CouponItemWidget> {
      EdgeInsets.fromLTRB(Dimensions.paddingSizeDefault,Dimensions.paddingSizeSmall, Dimensions.fontSizeDefault,0),
       child: Stack(clipBehavior: Clip.none, children: [
           ClipRRect(clipBehavior: Clip.none,
-            borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall),
+            borderRadius: BorderRadius.circular(18),
             child: Container(padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
               decoration: BoxDecoration(color: Theme.of(context).cardColor,
                   boxShadow:  [BoxShadow(color: Theme.of(context).hintColor.withValues(alpha:.12),
@@ -56,21 +56,18 @@ class _CouponItemWidgetState extends State<CouponItemWidget> {
                           Padding(padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
                             child: Text('${getTranslated('free_delivery', context)}',
                               style: robotoBold.copyWith(fontSize: Dimensions.fontSizeLarge,
-                                  color: Provider.of<ThemeController>(context, listen: false).darkTheme?
-                                  Theme.of(context).hintColor : Theme.of(context).primaryColor),),):
+                                  color: Theme.of(context).primaryColor),),):
 
                           widget.coupons.discountType == 'percentage'?
                           Padding(padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
                             child: Text('${widget.coupons.discount} ${'% ${getTranslated('off', context)}'}',
                               style: robotoBold.copyWith(fontSize: Dimensions.fontSizeExtraLarge,
-                                  color: Provider.of<ThemeController>(context, listen: false).darkTheme?
-                                  Theme.of(context).hintColor : Theme.of(context).primaryColor),),):
+                                  color: Theme.of(context).primaryColor),),):
 
                           Padding(padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
                             child: Text(PriceConverter.convertPrice(context, widget.coupons.discount),
                               style: robotoBold.copyWith(fontSize: Dimensions.fontSizeExtraLarge,
-                                  color: Provider.of<ThemeController>(context, listen: false).darkTheme?
-                                  Theme.of(context).hintColor : Theme.of(context).primaryColor),),),
+                                  color: Theme.of(context).primaryColor),),),
                           Text(widget.coupons.seller != null? widget.coupons.seller?.shop?.name??'' : widget.coupons.sellerId == 0?
                           '${getTranslated('on_all_shop', context)}': Provider.of<SplashController>(context, listen: false).configModel?.inHouseShop?.name ?? AppConstants.appName,
                             style: textRegular.copyWith(color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.7)))]))),
@@ -80,20 +77,16 @@ class _CouponItemWidgetState extends State<CouponItemWidget> {
                         child: Column(children: [
                          DottedBorder(
                            options: RoundedRectDottedBorderOptions(
-                             color: Provider.of<ThemeController>(context, listen: false).darkTheme?
-                             Theme.of(context).hintColor.withValues(alpha:.75) : Theme.of(context).primaryColor,
+                             color: Theme.of(context).primaryColor,
                              radius: const Radius.circular(5),
                            ),
                              child: Container(width: 120,
                                  alignment: Alignment.center,
                                  padding: const EdgeInsets.all(Dimensions.paddingSizeExtraSmall),
                                  decoration: BoxDecoration(
-                                 color: Provider.of<ThemeController>(context, listen: false).darkTheme?
-                                 Theme.of(context).hintColor.withValues(alpha:.15) :
-                                 Theme.of(context).primaryColor.withValues(alpha:.1)),
+                                 color: Theme.of(context).primaryColor.withValues(alpha:.08)),
                                  child: Text(widget.coupons.code??'',
-                                     style: titleRegular.copyWith(color: Provider.of<ThemeController>(context, listen: false).darkTheme?
-                                     Theme.of(context).hintColor :Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeDefault)))),
+                                     style: titleRegular.copyWith(color: Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeDefault)))),
 
 
                           Padding(padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
@@ -136,8 +129,7 @@ class _CouponItemWidgetState extends State<CouponItemWidget> {
                },
                child: Padding(padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
                     child: Icon(Icons.copy_rounded,
-                        color: Provider.of<ThemeController>(context, listen: false).darkTheme?
-                        Theme.of(context).hintColor : Theme.of(context).primaryColor.withValues(alpha:.65)))),
+                        color: Theme.of(context).primaryColor.withValues(alpha:.75)))),
            )),
 
 

@@ -9,6 +9,7 @@ import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dar
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/main.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
@@ -54,28 +55,39 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
     final ConfigModel configModel =  Provider.of<SplashController>(context, listen: false).configModel!;
     return Scaffold(
       key: _key,
-
-      appBar: CustomAppBar(title: getTranslated('forget_password', context)),
+      backgroundColor: AsinDesign.canvas(context),
+      appBar: CustomAppBar(title: ''),
       body: Consumer<AuthController>(
         builder: (context, authProvider,_) {
           return Consumer<SplashController>(
             builder: (context, splashProvider, _) {
               return Form(
                 key: forgetFormKey,
-                child: ListView(padding: const EdgeInsets.all(Dimensions.paddingSizeDefault), children: [
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 480),
+                    child: ListView(padding: const EdgeInsets.fromLTRB(24, 18, 24, 30), children: [
 
-                  Center(child: Padding(padding: const EdgeInsets.all(50), child: Image.asset(Images.logoWithNameImage, height: 150, width: 150))),
-
-                  Text(getTranslated('forget_password', context)!, textAlign: TextAlign.center, style: textBold.copyWith(
-                      fontSize: Dimensions.fontSizeLarge,
-                      color: Theme.of(context).textTheme.bodyLarge?.color
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Image.asset(Images.logoWithNameImage, height: 44, width: 132, fit: BoxFit.contain),
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  Text(getTranslated('forget_password', context) ?? 'Forgot Password', style: textBold.copyWith(
+                      fontSize: 27,
+                      color: AsinDesign.foreground(context),
+                      fontWeight: FontWeight.w700,
                   )),
-
-                  Text(getTranslated('enter_phone_number_for_password_reset', context)!, textAlign: TextAlign.center, style: textRegular.copyWith(
-                    color: Theme.of(context).hintColor,
-                    fontSize: Dimensions.fontSizeDefault,
+                  const SizedBox(height: 8),
+                  Text(getTranslated('enter_phone_number_for_password_reset', context) ?? 'Enter your registered phone number to recover your account.', style: textRegular.copyWith(
+                    color: AsinDesign.muted(context),
+                    fontSize: 14,
+                    height: 1.4,
                   )),
-                 const SizedBox(height: Dimensions.marginSizeAuthSmall),
+                 const SizedBox(height: 28),
 
 
                   Selector<AuthController, bool>(
@@ -110,13 +122,14 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                         isShowBorder: true,
                         controller: _userInputController,
                         inputType: TextInputType.number,
-                        labelText: getTranslated('phone', context),
+                        labelText: getTranslated('email/phone', context) ?? 'Email / phone',
                       );
                     },
                   ),
                   const SizedBox(height: Dimensions.bannerPadding),
 
                   CustomButton(
+                    isBuy: true,
                     isLoading: (authProvider.isLoading || authProvider.isForgotPasswordLoading),
                     buttonText: getTranslated('send', context),
                     onTap: () async {
@@ -159,7 +172,16 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                       }
                     },
                   ),
+                  const SizedBox(height: 26),
+                  Center(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text('Back to Sign In', style: textBold.copyWith(color: AsinDesign.gold, fontSize: 12.5)),
+                    ),
+                  ),
                 ]),
+                    ),
+                  ),
               );
             }
           );

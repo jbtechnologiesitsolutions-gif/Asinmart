@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/features/notification/domain/models/notification_model.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/date_converter.dart';
 import 'package:flutter_sixvalley_ecommerce/features/notification/controllers/notification_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_image_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/modern_motion_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/notification/widget/notification_dialog_widget.dart';
 import 'package:provider/provider.dart';
 
@@ -17,7 +19,10 @@ class NotificationItemWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<NotificationController>(
       builder: (context, notificationController, _) {
-        return InkWell(
+        return ModernFadeSlide(
+          delay: Duration(milliseconds: (index.clamp(0, 8) * 24).toInt()),
+          child: ModernPressable(
+            borderRadius: BorderRadius.circular(AsinDesign.radius),
             onTap:(){
               notificationController.seenNotification(notificationItem.id!);
               showModalBottomSheet(
@@ -50,24 +55,19 @@ class NotificationItemWidget extends StatelessWidget {
               ],
 
               Container(
+                margin: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
                 padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.black.withValues(alpha:0.05),
-                        spreadRadius: 0,
-                        blurRadius: 7,
-                        offset: const Offset(0, 1)
-                    ),
-                  ],
+                  color: AsinDesign.card(context),
+                  borderRadius: BorderRadius.circular(AsinDesign.radius),
+                  border: Border.all(color: notificationItem.seen == null ? AsinDesign.gold : AsinDesign.line(context), width: notificationItem.seen == null ? 1.3 : 1),
                 ),
                 child: Row(children: [
 
                   Stack(children: [
                     Container(
                       decoration: BoxDecoration(border: Border.all(
-                          color: Colors.black.withValues(alpha: 0.05), width: 2),
+                          color: Theme.of(context).dividerColor.withValues(alpha: .55), width: 1),
                           shape: BoxShape.circle
                       ),
                       child: ClipRRect(borderRadius: BorderRadius.circular(100),
@@ -76,7 +76,7 @@ class NotificationItemWidget extends StatelessWidget {
                     ),
 
                     if(notificationItem.seen == null)
-                      CircleAvatar(backgroundColor: Theme.of(context).colorScheme.error.withValues(alpha:.75), radius: 3),
+                      const CircleAvatar(backgroundColor: AsinDesign.gold, radius: 3),
                   ]),
                   const SizedBox(width: Dimensions.paddingSizeSmall),
 
@@ -99,7 +99,7 @@ class NotificationItemWidget extends StatelessWidget {
 
                         Text(DateConverter.getLocalTimeWithAMPM(notificationItem.createdAt ?? ''), style: textRegular.copyWith(
                           fontSize: Dimensions.fontSizeExtraSmall,
-                          color: Theme.of(context).primaryColor,
+                          color: AsinDesign.primary,
                         )),
                       ]),
 
@@ -117,6 +117,7 @@ class NotificationItemWidget extends StatelessWidget {
                 ]),
               ),
             ]),
+          ),
         );
       }
     );

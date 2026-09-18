@@ -17,6 +17,7 @@ class BannerController extends ChangeNotifier {
 
   List<BannerModel>? _mainBannerList;
   List<BannerModel>? _footerBannerList;
+  List<BannerModel> _allBannerList = <BannerModel>[];
   BannerModel? mainSectionBanner;
   BannerModel? sideBarBanner;
   Product? _product;
@@ -24,6 +25,7 @@ class BannerController extends ChangeNotifier {
   int? _footerBannerIndex;
   List<BannerModel>? get mainBannerList => _mainBannerList;
   List<BannerModel>? get footerBannerList => _footerBannerList;
+  List<BannerModel> get allBannerList => _allBannerList;
 
   Product? get product => _product;
   int? get currentIndex => _currentIndex;
@@ -45,32 +47,35 @@ class BannerController extends ChangeNotifier {
       onResponse: (data, _){
         _mainBannerList = [];
         _footerBannerList = [];
+        _allBannerList = <BannerModel>[];
 
         data.forEach((bannerModel) {
+          final parsedBanner = BannerModel.fromJson(bannerModel);
+          _allBannerList.add(parsedBanner);
           if(bannerModel['banner_type'] == 'Main Banner'){
-            _mainBannerList!.add(BannerModel.fromJson(bannerModel));
+            _mainBannerList!.add(parsedBanner);
           }
           else if(bannerModel['banner_type'] == 'Promo Banner Middle Top'){
-            promoBannerMiddleTop = BannerModel.fromJson(bannerModel);
+            promoBannerMiddleTop = parsedBanner;
           }
           else if(bannerModel['banner_type'] == 'Promo Banner Right'){
-            promoBannerRight = BannerModel.fromJson(bannerModel);
+            promoBannerRight = parsedBanner;
           }else if(bannerModel['banner_type'] == 'Promo Banner Middle Bottom'){
-            promoBannerMiddleBottom = BannerModel.fromJson(bannerModel);
+            promoBannerMiddleBottom = parsedBanner;
           }
           else if(bannerModel['banner_type'] == 'Promo Banner Bottom'){
-            promoBannerBottom = BannerModel.fromJson(bannerModel);
+            promoBannerBottom = parsedBanner;
           }
           else if(bannerModel['banner_type'] == 'Promo Banner Left'){
-            promoBannerLeft = BannerModel.fromJson(bannerModel);
+            promoBannerLeft = parsedBanner;
           }else if(bannerModel['banner_type'] == 'Sidebar Banner'){
-            sideBarBanner = BannerModel.fromJson(bannerModel);
+            sideBarBanner = parsedBanner;
           }else if(bannerModel['banner_type'] == 'Top Side Banner'){
-            topSideBarBannerBottom = BannerModel.fromJson(bannerModel);
+            topSideBarBannerBottom = parsedBanner;
           }else if(bannerModel['banner_type'] == 'Footer Banner'){
-            _footerBannerList?.add(BannerModel.fromJson(bannerModel));
+            _footerBannerList?.add(parsedBanner);
           }else if(bannerModel['banner_type'] == 'Main Section Banner'){
-            mainSectionBanner = BannerModel.fromJson(bannerModel);
+            mainSectionBanner = parsedBanner;
           }
         });
 
@@ -92,48 +97,65 @@ class BannerController extends ChangeNotifier {
   }
 
 
-  void clickBannerRedirect(BuildContext context, int? id, Product? product,  String? type, {String? url}) {
-
+  void clickBannerRedirect(BuildContext context, int? id, Product? product, String? type, {String? url}) {
     if(type == 'custom' && url != null && url.isNotEmpty) {
-      launchUrl(Uri.parse(url),mode: LaunchMode.externalApplication);
-    } else if(type == 'category') {
-      final cIndex =  Provider.of<CategoryController>(context, listen: false).categoryList.indexWhere((element) => element.id == id);
+      launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      return;
+    }
 
-      if(Provider.of<CategoryController>(context, listen: false).categoryList[cIndex].name != null){
-        RouterHelper.getBrandCategoryRoute(action: RouteAction.push, isBrand: false, id: id ?? 1, name: '${Provider.of<CategoryController>(context, listen: false).categoryList[cIndex].name}');
-      }
-
-    } else if(type == 'product') {
-      if(product != null  && product.status == 1) {
-        RouterHelper.getProductDetailsRoute(action: RouteAction.push, productId: product.id! , slug: product.slug!);
-      }
-    } else if(type == 'brand') {
-      final bIndex =  Provider.of<BrandController>(context, listen: false).brandList.indexWhere((element) => element.id == id);
-
-      if(Provider.of<BrandController>(context, listen: false).brandList[bIndex].name != null){
-        RouterHelper.getBrandCategoryRoute(action: RouteAction.push, isBrand: true, id: id!, name: '${Provider.of<BrandController>(context, listen: false).brandList[bIndex].name}');
-      }
-
-    }else if( type == 'shop'){
-      final tIndex =  Provider.of<ShopController>(context, listen: false).allSellerModel!.sellers!.indexWhere((element) => element.id == id);
-
-      if(Provider.of<ShopController>(context, listen: false).allSellerModel?.sellers?[tIndex].shop?.name != null){
-        final shop = Provider.of<ShopController>(context,listen: false).allSellerModel?.sellers?[tIndex].shop;
-        RouterHelper.getTopSellerRoute(
+    if(type == 'category') {
+      final categories = Provider.of<CategoryController>(context, listen: false).categoryList;
+      final cIndex = categories.indexWhere((element) => element.id == id);
+      if(cIndex < 0 || cIndex >= categories.length) return;
+      final category = categories[cIndex];
+      if((category.name ?? '').isNotEmpty) {
+        RouterHelper.getBrandCategoryRoute(
           action: RouteAction.push,
-          slug: shop?.slug ?? '',
-          sellerId: id,
-          temporaryClose: shop?.temporaryClose,
-          vacationStatus: shop?.vacationStatus,
-          vacationEndDate: shop?.vacationEndDate,
-          vacationStartDate: shop?.vacationStartDate,
-          vacationDurationType: shop?.vacationDurationType,
-          name: shop?.name,
-          banner: shop?.bannerFullUrl?.path,
-          image: shop?.imageFullUrl?.path,
+          isBrand: false,
+          id: id ?? category.id ?? 1,
+          name: category.name ?? '',
         );
       }
+      return;
+    }
 
+    if(type == 'product') {
+      if(product != null && product.status == 1 && product.id != null && (product.slug ?? '').isNotEmpty) {
+        RouterHelper.getProductDetailsRoute(action: RouteAction.push, productId: product.id!, slug: product.slug!);
+      }
+      return;
+    }
+
+    if(type == 'brand') {
+      final brands = Provider.of<BrandController>(context, listen: false).brandList;
+      final bIndex = brands.indexWhere((element) => element.id == id);
+      if(bIndex < 0 || bIndex >= brands.length) return;
+      final brand = brands[bIndex];
+      if((brand.name ?? '').isNotEmpty && id != null) {
+        RouterHelper.getBrandCategoryRoute(action: RouteAction.push, isBrand: true, id: id, name: brand.name ?? '');
+      }
+      return;
+    }
+
+    if(type == 'shop') {
+      final sellers = Provider.of<ShopController>(context, listen: false).allSellerModel?.sellers ?? [];
+      final tIndex = sellers.indexWhere((element) => element.id == id);
+      if(tIndex < 0 || tIndex >= sellers.length) return;
+      final shop = sellers[tIndex].shop;
+      if(shop == null || (shop.slug ?? '').isEmpty) return;
+      RouterHelper.getTopSellerRoute(
+        action: RouteAction.push,
+        slug: shop.slug ?? '',
+        sellerId: id,
+        temporaryClose: shop.temporaryClose,
+        vacationStatus: shop.vacationStatus,
+        vacationEndDate: shop.vacationEndDate,
+        vacationStartDate: shop.vacationStartDate,
+        vacationDurationType: shop.vacationDurationType,
+        name: shop.name,
+        banner: shop.bannerFullUrl?.path,
+        image: shop.imageFullUrl?.path,
+      );
     }
   }
 

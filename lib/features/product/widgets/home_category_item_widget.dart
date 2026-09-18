@@ -47,7 +47,7 @@ class HomeCategoryProductItemWidget extends StatelessWidget {
                       : homeCategoryProduct.products!.length,
                   padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
                   physics: const BouncingScrollPhysics(),
-                  crossAxisCount: ResponsiveHelper.isTab(context) ? 3 : 2,
+                  crossAxisCount: ResponsiveHelper.productGridCount(context),
                   shrinkWrap: true,
                   itemBuilder: (BuildContext context, int i) {
                     return InkWell(onTap: () {

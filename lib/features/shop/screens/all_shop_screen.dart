@@ -25,7 +25,7 @@ class _AllTopSellerScreenState extends State<AllTopSellerScreen> {
   void initState() {
     super.initState();
 
-    Provider.of<ShopController>(context, listen: false).setSellerType('top', notify: false);
+    Provider.of<ShopController>(context, listen: false).setSellerType('all', notify: false);
 
   }
 
@@ -35,7 +35,7 @@ class _AllTopSellerScreenState extends State<AllTopSellerScreen> {
       selector: (ctx, shopController) => shopController.sellerTypeTitle,
       builder: (context, sellerTypeTitle, _) {
         return Scaffold(
-          backgroundColor: Theme.of(context).highlightColor,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: CustomAppBar(
             title: '${getTranslated(sellerTypeTitle, context)}',
             showResetIcon: true,

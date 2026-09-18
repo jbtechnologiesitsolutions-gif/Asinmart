@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/no_internet_screen_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/product_shimmer_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/product_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/modern_motion_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/controllers/product_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/debounce_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/responsive_helper.dart';
@@ -41,12 +42,15 @@ class HomeProductListWidget extends StatelessWidget {
             totalSize: totalSize,
             offset: offset,
             itemCount: products.length,
-            crossAxisCount: ResponsiveHelper.isTab(context) ? 3 : 2,
+            crossAxisCount: ResponsiveHelper.productGridCount(context),
             mainAxisSpacing: Dimensions.paddingSizeSmall,
             crossAxisSpacing: Dimensions.paddingSizeSmall,
-            itemBuilder: (context, index) => ProductWidget(
-              margin: 0,
-              productModel: products[index],
+            itemBuilder: (context, index) => ModernFadeSlide(
+              delay: Duration(milliseconds: index.clamp(0, 8).toInt() * 22),
+              child: ProductWidget(
+                margin: 0,
+                productModel: products[index],
+              ),
             ),
           );
       }

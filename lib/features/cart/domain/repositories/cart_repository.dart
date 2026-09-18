@@ -15,6 +15,35 @@ class CartRepository extends DataSyncService implements CartRepositoryInterface 
   final DioClient dioClient;
   CartRepository({required this.dioClient, required super.dataSyncRepoInterface});
 
+  /// Builds the option payload defensively. Some newly-created catalogue items
+  /// can temporarily contain an attribute entry with an empty options array.
+  /// The previous implementation indexed options[0] unconditionally which
+  /// caused RangeError(length) before the cart API was even called.
+  Map<String?, dynamic> _buildChoiceMap(
+    List<ChoiceOptions> choiceOptions,
+    List<int>? variationIndexes,
+  ) {
+    final Map<String?, dynamic> choice = <String?, dynamic>{};
+
+    for (int index = 0; index < choiceOptions.length; index++) {
+      final options = choiceOptions[index].options ?? <String>[];
+      if (options.isEmpty) continue;
+
+      final selectedIndex = (variationIndexes != null && index < variationIndexes.length)
+          ? variationIndexes[index]
+          : 0;
+      if (selectedIndex < 0 || selectedIndex >= options.length) continue;
+
+      final name = choiceOptions[index].name;
+      final selectedValue = options[selectedIndex].trim();
+      if (name == null || name.trim().isEmpty || selectedValue.isEmpty) continue;
+
+      choice[name] = selectedValue;
+    }
+
+    return choice;
+  }
+
   @override
   Future<ApiResponseModel<T>> getCartData<T>({required DataSourceEnum source}) async {
     final guestToken = Provider.of<AuthController>(Get.context!, listen: false).getGuestToken();
@@ -35,10 +64,7 @@ class CartRepository extends DataSyncService implements CartRepositoryInterface 
   @override
   Future<ApiResponseModel> addToCartListData(CartModelBody cart, List<ChoiceOptions> choiceOptions, List<int>? variationIndexes,
       int? buyNow, int? shippingMethodExist, int? shippingMethodId) async {
-    Map<String?, dynamic> choice = {};
-    for(int index=0; index<choiceOptions.length; index++){
-      choice.addAll({choiceOptions[index].name: choiceOptions[index].options![variationIndexes![index]]});
-    }
+    final Map<String?, dynamic> choice = _buildChoiceMap(choiceOptions, variationIndexes);
     Map<String?, dynamic> data = {
       'id': cart.productId,
       'guest_id' : Provider.of<AuthController>(Get.context!, listen: false).getGuestToken(),
@@ -49,7 +75,7 @@ class CartRepository extends DataSyncService implements CartRepositoryInterface 
       'shipping_method_id': shippingMethodId,
     };
     data.addAll(choice);
-    if(cart.variant!.isNotEmpty) {
+    if((cart.variant ?? '').isNotEmpty) {
       data.addAll({'color': cart.color});
     }
     if(cart.variantKey != null){
@@ -72,10 +98,7 @@ class CartRepository extends DataSyncService implements CartRepositoryInterface 
   @override
   Future<ApiResponseModel> restockRequest(CartModelBody cart, List<ChoiceOptions> choiceOptions, List<int>? variationIndexes,
       int? buyNow, int? shippingMethodExist, int? shippingMethodId) async {
-    Map<String?, dynamic> choice = {};
-    for(int index=0; index<choiceOptions.length; index++){
-      choice.addAll({choiceOptions[index].name: choiceOptions[index].options![variationIndexes![index]]});
-    }
+    final Map<String?, dynamic> choice = _buildChoiceMap(choiceOptions, variationIndexes);
     Map<String?, dynamic> data = {
       'id': cart.productId,
       'guest_id' : Provider.of<AuthController>(Get.context!, listen: false).getGuestToken(),
@@ -86,7 +109,7 @@ class CartRepository extends DataSyncService implements CartRepositoryInterface 
       'shipping_method_id': shippingMethodId,
     };
     data.addAll(choice);
-    if(cart.variant!.isNotEmpty) {
+    if((cart.variant ?? '').isNotEmpty) {
       data.addAll({'color': cart.color});
     }
     if(cart.variantKey != null){

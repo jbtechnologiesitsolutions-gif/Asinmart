@@ -1,6 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/product_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/modern_motion_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/slider_product_shimmer_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/title_row_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/controllers/product_controller.dart';
@@ -19,13 +20,13 @@ class FeaturedProductWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final isTablet = ResponsiveHelper.isTab(context);
 
-    final viewportFraction = isTablet ? 0.34 : 0.52;
+    final viewportFraction = ResponsiveHelper.isDesktop(context) ? 0.20 : (isTablet ? 0.32 : 0.48);
 
     return Selector<ProductController, ProductModel?>(
       selector: (ctx, productController)=> productController.featuredProductModel,
         builder: (context, featuredProductModel, _) {
       return (featuredProductModel?.products?.isNotEmpty ?? false)  ? ColoredBox(
-        color: const Color(0xFFF8FAFB),
+        color: Theme.of(context).scaffoldBackgroundColor,
         child: Column(children: [
           Padding(
             padding: const EdgeInsets.symmetric(
@@ -53,7 +54,14 @@ class FeaturedProductWidget extends StatelessWidget {
               ),
               itemCount: featuredProductModel?.products?.length ?? 0,
               itemBuilder: (context, index, next) {
-                return ProductWidget(productModel: featuredProductModel!.products![index], productNameLine: 1, margin: 0,);
+                return ModernFadeSlide(
+                  delay: Duration(milliseconds: index.clamp(0, 6).toInt() * 24),
+                  child: ProductWidget(
+                    productModel: featuredProductModel!.products![index],
+                    productNameLine: 1,
+                    margin: 0,
+                  ),
+                );
               },
             ),
           ),

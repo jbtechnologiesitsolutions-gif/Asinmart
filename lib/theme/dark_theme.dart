@@ -1,46 +1,163 @@
 import 'package:flutter/material.dart';
-
-Color _primaryColor = const Color(0xFF0E3121);
-Color _secondaryColor = const Color(0xFFFFC107);
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/modern_page_transitions.dart';
 
 ThemeData dark = ThemeData(
-  fontFamily: 'TitilliumWeb',
-  primaryColor: _primaryColor,
+  useMaterial3: true,
+  fontFamily: 'SF-Pro-Rounded-Regular',
+  primaryColor: AsinDesign.primary,
   brightness: Brightness.dark,
-  highlightColor: const Color(0xFF252525),
-  hintColor: const Color(0xFFc7c7c7),
-  cardColor: const Color(0xFF242424),
-  scaffoldBackgroundColor: const Color(0xFF000000),
-  splashColor: Colors.transparent,
-
-
+  scaffoldBackgroundColor: AsinDesign.darkBackground,
+  cardColor: AsinDesign.darkSurface,
+  canvasColor: AsinDesign.darkSurface,
+  highlightColor: AsinDesign.darkSurfaceLow,
+  hintColor: AsinDesign.darkMuted,
+  splashColor: Colors.white10,
+  hoverColor: Colors.white.withValues(alpha: .035),
+  focusColor: AsinDesign.gold.withValues(alpha: .12),
+  dividerColor: AsinDesign.darkBorder,
+  disabledColor: const Color(0xFF34413D),
+  colorScheme: const ColorScheme.dark(
+    primary: AsinDesign.primary,
+    onPrimary: Colors.white,
+    primaryContainer: Color(0xFF123D37),
+    onPrimaryContainer: Color(0xFFBEE6DF),
+    secondary: AsinDesign.gold,
+    onSecondary: AsinDesign.text,
+    secondaryContainer: Color(0xFF5D4200),
+    onSecondaryContainer: Color(0xFFFFDEA5),
+    tertiary: Color(0xFFD8E6DF),
+    onTertiary: AsinDesign.text,
+    error: Color(0xFFFFB4AB),
+    onError: Color(0xFF690005),
+    errorContainer: Color(0xFF93000A),
+    onErrorContainer: Color(0xFFFFDAD6),
+    surface: AsinDesign.darkSurface,
+    onSurface: AsinDesign.darkText,
+    outline: Color(0xFF89938F),
+    outlineVariant: AsinDesign.darkBorder,
+    shadow: Colors.black,
+  ),
   textTheme: const TextTheme(
-    bodyLarge: TextStyle(color: Color(0xFFE9EEF4)),  // Text color primary
-    bodyMedium: TextStyle(color: Color(0xFFE9EEF4)), // Text color Secondary
-    bodySmall: TextStyle(color: Color(0xFFE9EEF4)),  // Text color Light grey
+    displayLarge: TextStyle(color: AsinDesign.darkText, fontSize: 28, height: 1.21, fontWeight: FontWeight.w700),
+    displayMedium: TextStyle(color: AsinDesign.darkText, fontSize: 22, height: 1.27, fontWeight: FontWeight.w700),
+    headlineLarge: TextStyle(color: AsinDesign.darkText, fontSize: 22, height: 1.27, fontWeight: FontWeight.w700),
+    headlineMedium: TextStyle(color: AsinDesign.darkText, fontSize: 18, height: 1.33, fontWeight: FontWeight.w600),
+    titleLarge: TextStyle(color: AsinDesign.darkText, fontSize: 18, fontWeight: FontWeight.w700),
+    titleMedium: TextStyle(color: AsinDesign.darkText, fontSize: 16, fontWeight: FontWeight.w600),
+    titleSmall: TextStyle(color: AsinDesign.darkText, fontSize: 13, fontWeight: FontWeight.w600),
+    bodyLarge: TextStyle(color: AsinDesign.darkText, fontSize: 15),
+    bodyMedium: TextStyle(color: AsinDesign.darkText, fontSize: 13),
+    bodySmall: TextStyle(color: AsinDesign.darkMuted, fontSize: 12),
+    labelLarge: TextStyle(color: AsinDesign.darkText, fontSize: 12, fontWeight: FontWeight.w700),
+    labelMedium: TextStyle(color: AsinDesign.darkMuted, fontSize: 12, fontWeight: FontWeight.w600),
+    labelSmall: TextStyle(color: AsinDesign.darkMuted, fontSize: 10, fontWeight: FontWeight.w600),
   ),
-
-  colorScheme : ColorScheme.dark(
-    primary: _primaryColor,  // Primary Color
-    secondary: _secondaryColor,  // Secondary Color
-    tertiary: const Color(0xFFFFBB38), // Warning Color
-    tertiaryContainer: const Color(0xFF6C7A8E),
-    surface: const Color(0xFF2D2D2D),
-    onPrimary: const Color(0xFFB7D7FE),
-    onTertiaryContainer: const Color(0xFF04BB7B), // Success Color
-    primaryContainer: const Color(0xFF208458),
-    onSecondaryContainer: const Color(0x912A2A2A),
-    outline: const Color(0xff5C8FFC), // Info Color
-    onTertiary: const Color(0xFF545252),
-    secondaryContainer: const Color(0xFFE9EEF4),
-    surfaceContainer: const Color(0xFFFB6C4C),
-    error: const Color(0xFFFF4040), // Danger Color
-    shadow: const Color(0xFFF4F7FC),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: AsinDesign.darkSurface,
+    foregroundColor: AsinDesign.darkText,
+    surfaceTintColor: Colors.transparent,
+    elevation: 0,
+    scrolledUnderElevation: 0,
+    centerTitle: false,
+    titleTextStyle: TextStyle(fontFamily: 'SF-Pro-Rounded-Regular', color: AsinDesign.darkText, fontSize: 20, fontWeight: FontWeight.w700),
   ),
-
+  inputDecorationTheme: InputDecorationTheme(
+    filled: true,
+    fillColor: AsinDesign.darkSurfaceLow,
+    hintStyle: const TextStyle(color: AsinDesign.darkMuted, fontSize: 13),
+    labelStyle: const TextStyle(color: AsinDesign.darkMuted, fontSize: 12),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+    border: OutlineInputBorder(borderRadius: BorderRadius.circular(AsinDesign.radius), borderSide: const BorderSide(color: AsinDesign.darkBorder)),
+    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AsinDesign.radius), borderSide: const BorderSide(color: AsinDesign.darkBorder)),
+    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AsinDesign.radius), borderSide: const BorderSide(color: AsinDesign.gold, width: 1.4)),
+    errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AsinDesign.radius), borderSide: const BorderSide(color: Color(0xFFFFB4AB))),
+    focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AsinDesign.radius), borderSide: const BorderSide(color: Color(0xFFFFB4AB), width: 1.4)),
+  ),
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: AsinDesign.primary,
+      foregroundColor: Colors.white,
+      elevation: 0,
+      minimumSize: const Size(44, 48),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AsinDesign.radius)),
+      textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+    ),
+  ),
+  filledButtonTheme: FilledButtonThemeData(
+    style: FilledButton.styleFrom(
+      backgroundColor: AsinDesign.primary,
+      foregroundColor: Colors.white,
+      minimumSize: const Size(44, 48),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AsinDesign.radius)),
+      textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+    ),
+  ),
+  outlinedButtonTheme: OutlinedButtonThemeData(
+    style: OutlinedButton.styleFrom(
+      foregroundColor: AsinDesign.gold,
+      minimumSize: const Size(44, 44),
+      side: const BorderSide(color: AsinDesign.darkBorder),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AsinDesign.radius)),
+      textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+    ),
+  ),
+  textButtonTheme: TextButtonThemeData(
+    style: TextButton.styleFrom(
+      foregroundColor: AsinDesign.gold,
+      textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AsinDesign.radius)),
+    ),
+  ),
+  chipTheme: ChipThemeData(
+    backgroundColor: AsinDesign.darkSurfaceLow,
+    selectedColor: AsinDesign.primary,
+    disabledColor: AsinDesign.darkSurfaceLow,
+    side: const BorderSide(color: AsinDesign.darkBorder),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+    labelStyle: const TextStyle(color: AsinDesign.darkText, fontWeight: FontWeight.w600, fontSize: 12),
+    secondaryLabelStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12),
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+  ),
+  bottomSheetTheme: const BottomSheetThemeData(
+    backgroundColor: AsinDesign.darkSurface,
+    surfaceTintColor: Colors.transparent,
+    showDragHandle: true,
+    dragHandleColor: Color(0xFF4B5B55),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+  ),
+  dialogTheme: DialogThemeData(
+    backgroundColor: AsinDesign.darkSurface,
+    surfaceTintColor: Colors.transparent,
+    elevation: 18,
+    shadowColor: Colors.black.withValues(alpha: .55),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+  ),
+  snackBarTheme: SnackBarThemeData(
+    behavior: SnackBarBehavior.floating,
+    backgroundColor: AsinDesign.primaryDeep,
+    contentTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AsinDesign.radius)),
+    elevation: 8,
+  ),
+  progressIndicatorTheme: const ProgressIndicatorThemeData(color: AsinDesign.gold, linearTrackColor: AsinDesign.darkBorder, circularTrackColor: AsinDesign.darkBorder),
+  checkboxTheme: CheckboxThemeData(
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+    fillColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.selected) ? AsinDesign.primary : null),
+  ),
+  radioTheme: RadioThemeData(fillColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.selected) ? AsinDesign.gold : AsinDesign.darkMuted)),
+  switchTheme: SwitchThemeData(
+    thumbColor: WidgetStateProperty.resolveWith((states) => Colors.white),
+    trackColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.selected) ? AsinDesign.primary : const Color(0xFF35413D)),
+  ),
+  dividerTheme: const DividerThemeData(color: AsinDesign.darkBorder, thickness: 1, space: 1),
   pageTransitionsTheme: const PageTransitionsTheme(builders: {
-    TargetPlatform.android: ZoomPageTransitionsBuilder(),
-    TargetPlatform.iOS: ZoomPageTransitionsBuilder(),
-    TargetPlatform.fuchsia: ZoomPageTransitionsBuilder(),
+    TargetPlatform.android: ModernPageTransitionsBuilder(),
+    TargetPlatform.iOS: ModernPageTransitionsBuilder(),
+    TargetPlatform.macOS: ModernPageTransitionsBuilder(),
+    TargetPlatform.windows: ModernPageTransitionsBuilder(),
+    TargetPlatform.linux: ModernPageTransitionsBuilder(),
+    TargetPlatform.fuchsia: ModernPageTransitionsBuilder(),
   }),
 );

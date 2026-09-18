@@ -16,6 +16,7 @@ import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_contr
 import 'package:flutter_sixvalley_ecommerce/features/cart/controllers/cart_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/theme/controllers/theme_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
@@ -38,6 +39,25 @@ class CartScreen extends StatefulWidget {
 
   @override
   CartScreenState createState() => CartScreenState();
+}
+
+
+class _CartSummaryRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color? valueColor;
+  const _CartSummaryRow({required this.label, required this.value, this.valueColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: textRegular.copyWith(color: AsinDesign.muted(context), fontSize: 12)),
+        Text(value, style: textMedium.copyWith(color: valueColor ?? AsinDesign.foreground(context), fontSize: 12)),
+      ],
+    );
+  }
 }
 
 class CartScreenState extends State<CartScreen> {
@@ -225,46 +245,72 @@ class CartScreenState extends State<CartScreen> {
                 bottomNavigationBar: (!cart.cartLoading && cartList.isNotEmpty) ?
                 Consumer<SplashController>(
                   builder: (context, configProvider,_) {
-                    return Container(height: cartList.isNotEmpty ? 110 : 0, padding: const EdgeInsets.symmetric(
+                    return Container(height: cartList.isNotEmpty ? 190 : 0, padding: const EdgeInsets.symmetric(
                       horizontal: Dimensions.paddingSizeDefault,
                       vertical: Dimensions.paddingSizeSmall
                      ),
 
                       decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(10)
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.zero,
+                        border: Border(top: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: .55))),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? .20 : .08),
+                            blurRadius: 10,
+                            offset: const Offset(0, -2),
+                          ),
+                        ],
                       ),
 
                       child: cartList.isNotEmpty ?
                       Column(children: [
 
-                        Padding(padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeSmall),
-                          child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-
-                            Row(children: [
-                              Text('${getTranslated('total_price', context)}  ', style: titilliumSemiBold.copyWith(
-                                fontSize: Dimensions.fontSizeLarge,
-                                color: Provider.of<ThemeController>(context, listen: false).darkTheme? Theme.of(context).hintColor : Theme.of(context).primaryColor)
-                              ),
-
-                             if(Provider.of<SplashController>(Get.context!, listen: false).configModel?.systemTaxIncludeStatus == 1)
-                              Text('${getTranslated('inc_vat_tax', context)}', style: titilliumSemiBold.copyWith(
-                                  fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).hintColor)),
-                            ]),
-
-                            Text(PriceConverter.convertPrice(context, amount+tax+shippingAmount-freeDeliveryAmountDiscount), style: titilliumSemiBold.copyWith(
-                              color: Provider.of<ThemeController>(context, listen: false).darkTheme? Theme.of(context).hintColor : Theme.of(context).primaryColor,
-                              fontSize: Dimensions.fontSizeLarge)
-                            ),
-                          ]),
+                        _CartSummaryRow(
+                          label: 'Subtotal',
+                          value: PriceConverter.convertPrice(context, amount + discount + tax),
                         ),
+                        const SizedBox(height: 4),
+                        _CartSummaryRow(
+                          label: 'Discount',
+                          value: discount > 0 ? '-${PriceConverter.convertPrice(context, discount)}' : PriceConverter.convertPrice(context, 0),
+                          valueColor: discount > 0 ? AsinDesign.success : null,
+                        ),
+                        const SizedBox(height: 4),
+                        _CartSummaryRow(
+                          label: 'Delivery Fee',
+                          value: (shippingAmount - freeDeliveryAmountDiscount) <= 0
+                              ? 'Free'
+                              : PriceConverter.convertPrice(context, shippingAmount - freeDeliveryAmountDiscount),
+                          valueColor: (shippingAmount - freeDeliveryAmountDiscount) <= 0 ? AsinDesign.success : null,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Divider(color: AsinDesign.line(context), height: 1),
+                        ),
+                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                          Row(children: [
+                            Text('${getTranslated('total_price', context)}  ', style: titilliumSemiBold.copyWith(
+                              fontSize: Dimensions.fontSizeLarge,
+                              color: AsinDesign.foreground(context),
+                            )),
+                            if(Provider.of<SplashController>(Get.context!, listen: false).configModel?.systemTaxIncludeStatus == 1)
+                              Text('${getTranslated('inc_vat_tax', context)}', style: titilliumSemiBold.copyWith(
+                                fontSize: Dimensions.fontSizeSmall, color: AsinDesign.muted(context))),
+                          ]),
+                          Text(
+                            PriceConverter.convertPrice(context, amount+tax+shippingAmount-freeDeliveryAmountDiscount),
+                            style: titilliumSemiBold.copyWith(color: AsinDesign.primary, fontSize: Dimensions.fontSizeLarge),
+                          ),
+                        ]),
+                        const SizedBox(height: 8),
 
                         Row(
                           children: [
                             Stack(
                               children: [
                                 Padding(
-                                  padding : EdgeInsetsGeometry.only(
+                                  padding : EdgeInsets.only(
                                     right : Dimensions.paddingSizeSmall,
                                     top : Dimensions.paddingSizeSmall,
                                     bottom : Dimensions.paddingSizeSmall
@@ -278,7 +324,7 @@ class CartScreenState extends State<CartScreen> {
                                 Positioned(
                                   top: 2, right: 5,
                                   child: Container(
-                                    padding: EdgeInsetsGeometry.all(5),
+                                    padding: EdgeInsets.all(5),
                                     decoration: BoxDecoration(
                                       border: Border.all(width: 2, color: Theme.of(context).cardColor),
                                       shape: BoxShape.circle,
@@ -431,13 +477,13 @@ class CartScreenState extends State<CartScreen> {
                                     );
                                   }
                                 },
-                                child: Container(decoration: BoxDecoration(color: Theme.of(context).primaryColor,
-                                    borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall)),
+                                child: Container(height: 46, decoration: BoxDecoration(color: AsinDesign.gold,
+                                    borderRadius: BorderRadius.circular(AsinDesign.radius)),
 
                                   child: Center(child: Padding(padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall,
                                       vertical: Dimensions.fontSizeSmall),
-                                    child: Text(getTranslated('checkout', context)!,
-                                        style: titilliumSemiBold.copyWith(fontSize: Dimensions.fontSizeDefault, color: Colors.white)
+                                    child: Text('Proceed to Checkout',
+                                        style: titilliumSemiBold.copyWith(fontSize: Dimensions.fontSizeDefault, color: AsinDesign.primaryDeep)
                                     ),
                                   ),
                                   ),
@@ -453,7 +499,7 @@ class CartScreenState extends State<CartScreen> {
                 ) : null,
 
 
-                appBar: CustomAppBar(title: getTranslated('my_cart', context), isBackButtonExist: widget.showBackButton),
+                appBar: CustomAppBar(title: 'Shopping Cart', isBackButtonExist: widget.showBackButton),
                 body: Column(children: [
                   cart.cartLoading ? const Expanded(child: CartPageShimmerWidget()) : sellerList.isNotEmpty ?
                   Expanded(child:

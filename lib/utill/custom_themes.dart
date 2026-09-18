@@ -37,14 +37,14 @@ const titilliumItalic = TextStyle(
 
 const textRegular = TextStyle(
   fontFamily: 'SF-Pro-Rounded-Regular',
-  fontWeight: FontWeight.w300,
+  fontWeight: FontWeight.w400,
   fontSize: 14,
 );
 
 const textMedium = TextStyle(
   fontFamily: 'SF-Pro-Rounded-Regular',
   fontSize: 14,
-  fontWeight: FontWeight.w500
+  fontWeight: FontWeight.w600
 );
 const textBold = TextStyle(
     fontFamily: 'SF-Pro-Rounded-Regular',
@@ -62,7 +62,7 @@ const robotoBold = TextStyle(
 class ThemeShadow {
   static List <BoxShadow> getShadow(BuildContext context) {
     List<BoxShadow> boxShadow =  [BoxShadow(color: Provider.of<ThemeController>(context, listen: false).darkTheme? Colors.black26:
-    Theme.of(context).primaryColor.withValues(alpha:.075), blurRadius: 5,spreadRadius: 1,offset: const Offset(1,1))];
+    Colors.black.withValues(alpha:.055), blurRadius: 18, spreadRadius: 0, offset: const Offset(0,6))];
     return boxShadow;
   }
 }

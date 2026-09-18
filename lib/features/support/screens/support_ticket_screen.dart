@@ -7,6 +7,7 @@ import 'package:flutter_sixvalley_ecommerce/features/support/widgets/support_tic
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_app_bar_widget.dart';
@@ -37,12 +38,14 @@ class _SupportTicketScreenState extends State<SupportTicketScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AsinDesign.canvas(context),
       appBar: CustomAppBar(title: getTranslated('support_ticket', context)),
       bottomNavigationBar: Provider.of<AuthController>(context, listen: false).isLoggedIn() ?
       SizedBox(height: 70, child: Padding(
         padding: const EdgeInsets.all(Dimensions.paddingSizeEight),
         child: CustomButton(
-          radius: Dimensions.paddingSizeExtraSmall,
+          radius: AsinDesign.radius,
+          isBuy: true,
           buttonText: getTranslated('add_new_ticket', context),
           onTap: (){
             showModalBottomSheet(

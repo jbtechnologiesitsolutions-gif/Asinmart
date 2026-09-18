@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/enums/data_source_enum.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
+import 'package:flutter_sixvalley_ecommerce/features/product/domain/models/product_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/enums/product_type.dart';
 import 'package:flutter_sixvalley_ecommerce/interface/repo_interface.dart';
 
@@ -27,6 +28,8 @@ abstract class ProductRepositoryInterface extends RepositoryInterface {
   Future<ApiResponseModel<T>> getMostSearchingProductList<T>({required int offset, required DataSourceEnum source});
 
   Future<ApiResponseModel<T>> getHomeCategoryProductList<T>({required DataSourceEnum source});
+
+  Future<List<Product>> getWebsiteCoverFlowProducts();
 
   Future<ApiResponseModel<T>> getClearanceAllProductList<T>({required int offset, required DataSourceEnum source});
 

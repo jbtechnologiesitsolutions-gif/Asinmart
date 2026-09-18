@@ -9,6 +9,7 @@ import 'package:flutter_sixvalley_ecommerce/main.dart';
 import 'package:flutter_sixvalley_ecommerce/push_notification/models/notification_body.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/theme/controllers/theme_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/app_constants.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
@@ -276,22 +277,63 @@ class SplashWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: Theme.of(context).primaryColor,
-      child: Column(mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
+      color: AsinDesign.primaryDeep,
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-        Row(children: []),
-        BouncyWidget(
-          duration: const Duration(milliseconds: 2000), lift: 50, ratio: 0.5, pause: 0.25,
-          child: SizedBox(width: 150, child: Image.asset(Images.logo, width: 150.0))
-        ),
-        Text(AppConstants.appName,style: textRegular.copyWith(fontSize: Dimensions.fontSizeOverLarge, color: Colors.white)),
-        Padding(
-          padding: const EdgeInsets.only(top: Dimensions.paddingSizeSmall),
-          child: Text(AppConstants.slogan,style: textRegular.copyWith(fontSize: Dimensions.fontSizeDefault, color: Colors.white))
-        )
-      ]),
+          Positioned(
+            right: -90,
+            top: -90,
+            child: Container(
+              width: 230,
+              height: 230,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: AsinDesign.gold.withValues(alpha: .08)),
+            ),
+          ),
+          Positioned(
+            left: -70,
+            bottom: -70,
+            child: Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withValues(alpha: .035)),
+            ),
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              BouncyWidget(
+                duration: const Duration(milliseconds: 1700),
+                lift: 30,
+                ratio: 0.5,
+                pause: 0.2,
+                child: Container(
+                  width: 82,
+                  height: 82,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AsinDesign.gold,
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .16), blurRadius: 24, offset: const Offset(0, 10))],
+                  ),
+                  child: Image.asset(Images.logo, fit: BoxFit.contain),
+                ),
+              ),
+              const SizedBox(height: 22),
+              Text(
+                AppConstants.appName,
+                style: textBold.copyWith(fontSize: 28, color: Colors.white, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                AppConstants.slogan,
+                textAlign: TextAlign.center,
+                style: textRegular.copyWith(fontSize: 11, color: AsinDesign.gold, letterSpacing: .7),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

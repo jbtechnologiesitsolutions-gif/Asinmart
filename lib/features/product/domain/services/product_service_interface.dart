@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
+import 'package:flutter_sixvalley_ecommerce/features/product/domain/models/product_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/enums/product_type.dart';
 
 import '../../../../common/enums/data_source_enum.dart';
@@ -16,6 +17,7 @@ abstract class ProductServiceInterface{
   Future<ApiResponseModel<T>> getMostSearchingProductList<T>({required int offset, required DataSourceEnum source});
   Future<ApiResponseModel<T>> getClearanceAllProductList<T>({required int offset, required DataSourceEnum source});
   Future<ApiResponseModel<T>> getHomeCategoryProductList<T>({required DataSourceEnum source});
+  Future<List<Product>> getWebsiteCoverFlowProducts();
   Future<dynamic> getClearanceSearchProducts(String query, String? categoryIds, String? brandIds, String? authorIds, String? publishingIds, String? sort, String? priceMin, String? priceMax, int offset, String? productType, String? offerType);
   Future<ApiResponseModel<T>> getProductModelByType<T>({required int offset, required ProductType productType, required DataSourceEnum source});
 

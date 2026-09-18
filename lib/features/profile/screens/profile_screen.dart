@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_image_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/modern_motion_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/domain/models/profile_model.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
@@ -137,9 +138,20 @@ class ProfileScreenState extends State<ProfileScreen> {
 
           return Stack(clipBehavior: Clip.none, children: [
 
-            Container(width: MediaQuery.of(context).size.width, height: MediaQuery.of(context).size.width,
-                color: Provider.of<ThemeController>(context, listen: false).darkTheme? Theme.of(context).cardColor:
-                Theme.of(context).primaryColor),
+            Container(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.width,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).primaryColor,
+                    Theme.of(context).primaryColor.withValues(alpha: .86),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+            ),
             Container(transform: Matrix4.translationValues(-10, 0, 0),
                 child: Padding(padding: const EdgeInsets.only(top: 50.0),
                     child: SizedBox(width: 110, child: Image.asset(Images.shadow,
@@ -214,14 +226,17 @@ class ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: Dimensions.paddingSizeLarge),
 
 
-                Expanded(child: Container(padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
-                  decoration: BoxDecoration(color: Theme.of(context).highlightColor,
+                Expanded(child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
                     borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(Dimensions.marginSizeDefault),
-                      topRight: Radius.circular(Dimensions.marginSizeDefault),
+                      topLeft: Radius.circular(28),
+                      topRight: Radius.circular(28),
                     ),
                   ),
-                  child: ListView(physics: const BouncingScrollPhysics(), children: [
+                  child: ModernFadeSlide(
+                    child: ListView(physics: const BouncingScrollPhysics(), children: [
                     CustomTextFieldWidget(
                       labelText: getTranslated('first_name', context),
                       inputType: TextInputType.name,
@@ -293,15 +308,8 @@ class ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: Dimensions.paddingSizeLarge),
 
 
-                    InkWell(
-                      child: const Text('hello'),
-                      onTap: () {
-                        // Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ProfileScreen1()));
-                      },
-                    ),
-
-
                   ],
+                  ),
                   ),
                 ),
                 ),

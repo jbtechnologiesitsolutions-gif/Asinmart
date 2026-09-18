@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_image_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/product_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/modern_motion_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/banner/controllers/banner_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/category/controllers/category_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/controllers/product_controller.dart';
@@ -24,13 +25,33 @@ const Color asinDeepGreen = Color(0xFF00382F);
 const Color asinGold = Color(0xFFF5B82E);
 const Color asinSoftBackground = Color(0xFFF7F8F6);
 
+bool _homeIsDark(BuildContext context) => Theme.of(context).brightness == Brightness.dark;
+Color _homeBackground(BuildContext context) => _homeIsDark(context) ? const Color(0xFF0D1110) : asinSoftBackground;
+Color _homeSurface(BuildContext context) => _homeIsDark(context) ? const Color(0xFF171C1B) : Colors.white;
+Color _homeSoftSurface(BuildContext context) => _homeIsDark(context) ? const Color(0xFF202624) : const Color(0xFFF7F9F8);
+Color _homeBorder(BuildContext context) => _homeIsDark(context) ? Colors.white12 : const Color(0xFFE7EBE8);
+Color _homeText(BuildContext context) => _homeIsDark(context) ? const Color(0xFFF0F4F2) : const Color(0xFF26302D);
+Color _homeMuted(BuildContext context) => _homeIsDark(context) ? const Color(0xFFA6B0AD) : const Color(0xFF7B8582);
+
+IconData _marketplaceCategoryIcon(String name) {
+  final value = name.toLowerCase();
+  if(value.contains('fashion') || value.contains('cloth')) return Icons.shopping_bag_outlined;
+  if(value.contains('mobile') || value.contains('phone')) return Icons.phone_android_outlined;
+  if(value.contains('electronic')) return Icons.laptop_mac_outlined;
+  if(value.contains('beauty') || value.contains('cosmetic')) return Icons.palette_outlined;
+  if(value.contains('kitchen') || value.contains('home')) return Icons.chair_outlined;
+  if(value.contains('sport')) return Icons.sports_basketball_outlined;
+  if(value.contains('kid') || value.contains('baby')) return Icons.child_friendly_outlined;
+  return Icons.category_outlined;
+}
+
 class MarketplacePromoRibbon extends StatelessWidget {
   const MarketplacePromoRibbon({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: _homeSurface(context),
       padding: const EdgeInsets.fromLTRB(10, 0, 10, 6),
       child: Row(
         children: [
@@ -68,22 +89,22 @@ class _PromoChip extends StatelessWidget {
       height: 43,
       padding: const EdgeInsets.symmetric(horizontal: 9),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAF8),
+        color: _homeSoftSurface(context),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE8ECE8)),
+        border: Border.all(color: _homeBorder(context)),
       ),
       child: Row(
         children: [
-          Icon(icon, color: asinDeepGreen, size: 18),
+          Icon(icon, color: _homeIsDark(context) ? asinGold : asinDeepGreen, size: 18),
           const SizedBox(width: 6),
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: textBold.copyWith(color: asinDeepGreen, fontSize: 9)),
+                Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: textBold.copyWith(color: _homeIsDark(context) ? const Color(0xFFF0F4F2) : asinDeepGreen, fontSize: 9)),
                 const SizedBox(height: 1),
-                Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: textRegular.copyWith(color: const Color(0xFF6C7774), fontSize: 8.5)),
+                Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: textRegular.copyWith(color: _homeMuted(context), fontSize: 8.5)),
               ],
             ),
           ),
@@ -136,13 +157,19 @@ class _MarketplaceCoverFlowShowcaseState extends State<MarketplaceCoverFlowShowc
   }
 
   List<Product> _products(ProductController controller) {
+    final websiteProducts = controller.websiteCoverFlowProducts;
+    if (websiteProducts.isNotEmpty) {
+      return websiteProducts
+          .where((product) => product.id != null && (product.slug ?? '').isNotEmpty)
+          .take(10)
+          .toList();
+    }
+
+    // Network-safe fallback only. Normally the list above is taken directly
+    // from the rendered website Cover Flow, preserving its exact product order.
     final featured = controller.featuredProductModel?.products ?? <Product>[];
     final latest = controller.latestProductModel?.products ?? <Product>[];
     final top = controller.allProductModel?.products ?? <Product>[];
-
-    // The website Cover Flow prefers a curated/sponsored list and falls back to
-    // in-house marketplace products. The app currently has no advertisement API,
-    // so the closest API-safe equivalent is Featured -> Latest -> Top products.
     final source = featured.length >= 3 ? featured : (latest.length >= 3 ? latest : top);
     return source.where((product) => product.id != null && (product.slug ?? '').isNotEmpty).take(8).toList();
   }
@@ -190,7 +217,9 @@ class _MarketplaceCoverFlowShowcaseState extends State<MarketplaceCoverFlowShowc
               ),
               const SizedBox(height: 4),
               Text(
-                'Popular marketplace picks while in-house products are curated.',
+                productController.websiteCoverFlowProducts.isNotEmpty
+                    ? 'Same products currently featured on AsinMart.com.'
+                    : 'Popular marketplace picks while in-house products are curated.',
                 textAlign: TextAlign.center,
                 style: textRegular.copyWith(color: Colors.white70, fontSize: 9.5),
               ),
@@ -287,9 +316,9 @@ class _CoverFlowProductCard extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 7, horizontal: 3),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: _homeSurface(context),
           borderRadius: BorderRadius.circular(13),
-          border: Border.all(color: active ? asinGold : Colors.white, width: active ? 1.6 : 1),
+          border: Border.all(color: active ? asinGold : _homeBorder(context), width: active ? 1.6 : 1),
           boxShadow: [
             BoxShadow(color: Colors.black.withValues(alpha: active ? .22 : .10), blurRadius: active ? 20 : 9, offset: const Offset(0, 8)),
           ],
@@ -300,7 +329,7 @@ class _CoverFlowProductCard extends StatelessWidget {
             Expanded(
               child: Container(
                 width: double.infinity,
-                color: const Color(0xFFF8F8F5),
+                color: _homeSoftSurface(context),
                 padding: const EdgeInsets.all(8),
                 child: CustomImageWidget(image: '${product.thumbnailFullUrl?.path}', fit: BoxFit.contain),
               ),
@@ -309,9 +338,9 @@ class _CoverFlowProductCard extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(10, 8, 10, 9),
               child: Column(
                 children: [
-                  Text(product.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: textMedium.copyWith(color: const Color(0xFF1F2826), fontSize: 10.5)),
+                  Text(product.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: textMedium.copyWith(color: _homeText(context), fontSize: 10.5)),
                   const SizedBox(height: 3),
-                  Text(price, style: textBold.copyWith(color: asinDeepGreen, fontSize: 11)),
+                  Text(price, style: textBold.copyWith(color: _homeIsDark(context) ? asinGold : asinDeepGreen, fontSize: 11)),
                   const SizedBox(height: 7),
                   Container(
                     height: 29,
@@ -356,8 +385,8 @@ class MarketplaceShopByCategory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<CategoryController>(
-      builder: (context, categoryController, _) {
+    return Consumer2<CategoryController, BannerController>(
+      builder: (context, categoryController, bannerController, _) {
         final categories = categoryController.categoryList.take(6).toList();
         if (categories.isEmpty) return const SizedBox.shrink();
 
@@ -370,30 +399,84 @@ class MarketplaceShopByCategory extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             shrinkWrap: true,
             itemCount: categories.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, childAspectRatio: 1.03, crossAxisSpacing: 8, mainAxisSpacing: 8),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              childAspectRatio: 1.03,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+            ),
             itemBuilder: (context, index) {
               final category = categories[index];
+
+              // Prefer a category-linked banner from the existing banner API.
+              // If none is configured, fall back to the category icon/image.
+              String visualPath = '';
+              for (final banner in bannerController.allBannerList) {
+                if (banner.resourceType == 'category' &&
+                    banner.resourceId == category.id &&
+                    (banner.photoFullUrl?.path ?? '').trim().isNotEmpty) {
+                  visualPath = banner.photoFullUrl!.path!.trim();
+                  break;
+                }
+              }
+              if (visualPath.isEmpty) {
+                visualPath = category.imageFullUrl?.path?.trim() ?? '';
+              }
+
               return InkWell(
-                onTap: () => RouterHelper.getBrandCategoryRoute(action: RouteAction.push, isBrand: false, id: category.id, name: category.name),
+                onTap: () => RouterHelper.getBrandCategoryRoute(
+                  action: RouteAction.push,
+                  isBrand: false,
+                  id: category.id,
+                  name: category.name,
+                ),
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: _homeSurface(context),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFE7EBE8)),
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .025), blurRadius: 7, offset: const Offset(0, 3))],
+                    border: Border.all(color: _homeBorder(context)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: _homeIsDark(context) ? .10 : .025),
+                        blurRadius: 7,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
                   child: Column(
                     children: [
                       Expanded(
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: CustomImageWidget(image: '${category.imageFullUrl?.path}', width: double.infinity, fit: BoxFit.cover),
+                          child: visualPath.isNotEmpty && visualPath != 'null'
+                              ? CustomImageWidget(
+                                  image: visualPath,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  fit: BoxFit.cover,
+                                )
+                              : Container(
+                                  width: double.infinity,
+                                  color: _homeSoftSurface(context),
+                                  alignment: Alignment.center,
+                                  child: Icon(
+                                    _marketplaceCategoryIcon(category.name ?? ''),
+                                    color: _homeIsDark(context) ? asinGold : asinDeepGreen,
+                                    size: 34,
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(height: 5),
-                      Text(category.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: textMedium.copyWith(color: const Color(0xFF26302D), fontSize: 9.5)),
+                      Text(
+                        category.name ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: textMedium.copyWith(color: _homeText(context), fontSize: 9.5),
+                      ),
                     ],
                   ),
                 ),
@@ -739,20 +822,20 @@ class MarketplaceVerifiedStores extends StatelessWidget {
                   child: Container(
                     width: 105,
                     padding: const EdgeInsets.all(7),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFE7EAE7))),
+                    decoration: BoxDecoration(color: _homeSurface(context), borderRadius: BorderRadius.circular(10), border: Border.all(color: _homeBorder(context))),
                     child: Column(
                       children: [
                         Container(
                           width: 48,
                           height: 48,
-                          decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFF0F6F4)),
+                          decoration: BoxDecoration(shape: BoxShape.circle, color: _homeSoftSurface(context)),
                           clipBehavior: Clip.antiAlias,
                           child: CustomImageWidget(image: '${shop?.imageFullUrl?.path ?? seller.imageFullUrl?.path}', fit: BoxFit.cover),
                         ),
                         const SizedBox(height: 6),
-                        Text(shop?.name ?? '${seller.fName ?? ''} ${seller.lName ?? ''}', maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: textBold.copyWith(color: const Color(0xFF2A3431), fontSize: 9.5)),
+                        Text(shop?.name ?? '${seller.fName ?? ''} ${seller.lName ?? ''}', maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: TextAlign.center, style: textBold.copyWith(color: _homeText(context), fontSize: 9.5)),
                         const SizedBox(height: 2),
-                        Text('${seller.productCount ?? 0} Products', style: textRegular.copyWith(color: const Color(0xFF7B8582), fontSize: 8)),
+                        Text('${seller.productCount ?? 0} Products', style: textRegular.copyWith(color: _homeMuted(context), fontSize: 8)),
                       ],
                     ),
                   ),
@@ -779,15 +862,15 @@ class MarketplaceTrustSection extends StatelessWidget {
     ];
 
     return Container(
-      color: Colors.white,
+      color: _homeSurface(context),
       padding: const EdgeInsets.fromLTRB(10, 18, 10, 17),
       child: Column(
         children: [
           Text('WHY SHOP WITH US', style: textBold.copyWith(color: asinGold, fontSize: 8.5, letterSpacing: .8)),
           const SizedBox(height: 4),
-          Text('Why Customers Trust AsinMart', style: textBold.copyWith(color: const Color(0xFF232B29), fontSize: 15)),
+          Text('Why Customers Trust AsinMart', style: textBold.copyWith(color: _homeText(context), fontSize: 15)),
           const SizedBox(height: 4),
-          Text('Shop with confidence through reliable delivery, protected payments and verified sellers.', textAlign: TextAlign.center, style: textRegular.copyWith(color: const Color(0xFF7B8582), fontSize: 9)),
+          Text('Shop with confidence through reliable delivery, protected payments and verified sellers.', textAlign: TextAlign.center, style: textRegular.copyWith(color: _homeMuted(context), fontSize: 9)),
           const SizedBox(height: 12),
           GridView.builder(
             shrinkWrap: true,
@@ -798,15 +881,15 @@ class MarketplaceTrustSection extends StatelessWidget {
               final item = items[index];
               return Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: const Color(0xFFF7F9F8), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFE9ECEA))),
+                decoration: BoxDecoration(color: _homeSoftSurface(context), borderRadius: BorderRadius.circular(10), border: Border.all(color: _homeBorder(context))),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(item.icon, color: asinDeepGreen, size: 20),
+                    Icon(item.icon, color: _homeIsDark(context) ? asinGold : asinDeepGreen, size: 20),
                     const SizedBox(height: 5),
-                    Text(item.title, textAlign: TextAlign.center, style: textBold.copyWith(color: const Color(0xFF38413E), fontSize: 9.5)),
+                    Text(item.title, textAlign: TextAlign.center, style: textBold.copyWith(color: _homeText(context), fontSize: 9.5)),
                     const SizedBox(height: 2),
-                    Text(item.subtitle, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: textRegular.copyWith(color: const Color(0xFF818986), fontSize: 7.8)),
+                    Text(item.subtitle, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: textRegular.copyWith(color: _homeMuted(context), fontSize: 7.8)),
                   ],
                 ),
               );
@@ -966,9 +1049,10 @@ class _HomeSectionShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return ModernFadeSlide(
+      child: Container(
       width: double.infinity,
-      color: asinSoftBackground,
+      color: _homeBackground(context),
       padding: const EdgeInsets.fromLTRB(10, 11, 10, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -976,18 +1060,18 @@ class _HomeSectionShell extends StatelessWidget {
           if ((eyebrow ?? '').isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 2),
-              child: Text(eyebrow!, style: textBold.copyWith(color: asinDeepGreen.withValues(alpha: .67), fontSize: 8, letterSpacing: .6)),
+              child: Text(eyebrow!, style: textBold.copyWith(color: _homeIsDark(context) ? asinGold.withValues(alpha: .88) : asinDeepGreen.withValues(alpha: .67), fontSize: 8, letterSpacing: .6)),
             ),
           Row(
             children: [
-              Expanded(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: textBold.copyWith(color: const Color(0xFF26302D), fontSize: 15))),
+              Expanded(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: textBold.copyWith(color: _homeText(context), fontSize: 15))),
               if (actionText != null && onAction != null)
                 InkWell(
                   onTap: onAction,
                   borderRadius: BorderRadius.circular(20),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 4),
-                    child: Text(actionText!, style: textMedium.copyWith(color: asinDeepGreen, fontSize: 8.8)),
+                    child: Text(actionText!, style: textMedium.copyWith(color: _homeIsDark(context) ? asinGold : asinDeepGreen, fontSize: 8.8)),
                   ),
                 ),
             ],
@@ -995,6 +1079,7 @@ class _HomeSectionShell extends StatelessWidget {
           const SizedBox(height: 8),
           child,
         ],
+      ),
       ),
     );
   }

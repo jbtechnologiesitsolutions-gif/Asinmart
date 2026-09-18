@@ -267,6 +267,8 @@ class _MyAppState extends State<MyApp> {
               routerConfig: RouterHelper.goRoutes,
               title: AppConstants.appName,
               debugShowCheckedModeBanner: false,
+              themeAnimationDuration: const Duration(milliseconds: 320),
+              themeAnimationCurve: Curves.easeOutCubic,
               theme: themeController.darkTheme ? dark : light(
                 primaryColor: Theme.of(context).primaryColor,
                 secondaryColor: Theme.of(context).colorScheme.secondary,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/domain/models/register_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/widgets/condition_check_box_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/profile/controllers/profile_contrroller.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/velidate_check.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
@@ -114,7 +115,7 @@ class SignUpWidgetState extends State<SignUpWidget> {
                     child: Column(children: [
                       const SizedBox(height: Dimensions.paddingSizeExtraSmall,),
                       Container(
-                          margin: const EdgeInsets.only(left: Dimensions.marginSizeDefault, right: Dimensions.marginSizeDefault),
+                          margin: EdgeInsets.zero,
                           child: CustomTextFieldWidget(
                               hintText: getTranslated('first_name', context),
                               labelText: getTranslated('first_name', context),
@@ -129,8 +130,7 @@ class SignUpWidgetState extends State<SignUpWidget> {
                               validator: (value)  => ValidateCheck.validateEmptyText(value, "first_name_field_is_required"))),
 
 
-                      Container(margin: const EdgeInsets.only(left: Dimensions.marginSizeDefault, right: Dimensions.marginSizeDefault,
-                          top: Dimensions.marginSizeSmall),
+                      Container(margin: const EdgeInsets.only(top: 12),
                           child: CustomTextFieldWidget(
                               hintText: getTranslated('last_name', context),
                               labelText: getTranslated('last_name', context),
@@ -143,8 +143,7 @@ class SignUpWidgetState extends State<SignUpWidget> {
                               controller: _lastNameController,
                               validator: (value)  => ValidateCheck.validateEmptyText(value, "last_name_field_is_required"))),
 
-                      Container(margin: const EdgeInsets.only(left: Dimensions.marginSizeDefault, right: Dimensions.marginSizeDefault,
-                          top: Dimensions.marginSizeSmall),
+                      Container(margin: const EdgeInsets.only(top: 12),
                           child: CustomTextFieldWidget(
                               hintText: getTranslated('enter_your_email', context),
                               labelText: getTranslated('enter_your_email', context),
@@ -159,8 +158,7 @@ class SignUpWidgetState extends State<SignUpWidget> {
 
 
 
-                      Container(margin: const EdgeInsets.only(left: Dimensions.marginSizeDefault,
-                        right: Dimensions.marginSizeDefault, top: Dimensions.marginSizeSmall),
+                      Container(margin: const EdgeInsets.only(top: 12),
                         child: CustomTextFieldWidget(
                           hintText: getTranslated('enter_mobile_number', context),
                           labelText: getTranslated('enter_mobile_number', context),
@@ -184,8 +182,7 @@ class SignUpWidgetState extends State<SignUpWidget> {
 
 
 
-                      Container(margin: const EdgeInsets.only(left: Dimensions.marginSizeDefault,
-                          right: Dimensions.marginSizeDefault, top: Dimensions.marginSizeSmall),
+                      Container(margin: const EdgeInsets.only(top: 12),
                           child: CustomTextFieldWidget(
                               hintText: getTranslated('minimum_password_length', context),
                               labelText: getTranslated('password', context),
@@ -201,8 +198,7 @@ class SignUpWidgetState extends State<SignUpWidget> {
 
 
                       Hero(tag: 'user',
-                          child: Container(margin: const EdgeInsets.only(left: Dimensions.marginSizeDefault,
-                              right: Dimensions.marginSizeDefault, top: Dimensions.marginSizeSmall),
+                          child: Container(margin: const EdgeInsets.only(top: 12),
                               child: CustomTextFieldWidget(
                                   isPassword: true,required: true,
                                   hintText: getTranslated('re_enter_password', context),
@@ -219,8 +215,7 @@ class SignUpWidgetState extends State<SignUpWidget> {
                       // Padding(padding: const EdgeInsets.only(top: Dimensions.paddingSizeDefault, left: Dimensions.paddingSizeDefault),
                       //   child: Row(children: [Text(getTranslated('refer_code', context)??'')])),
                         if(splashProvider.configModel?.refEarningStatus != null && splashProvider.configModel?.refEarningStatus == "1")
-                          Container(margin: const EdgeInsets.only(left: Dimensions.marginSizeDefault,
-                              right: Dimensions.marginSizeDefault, top: Dimensions.marginSizeSmall),
+                          Container(margin: const EdgeInsets.only(top: 12),
                               child: CustomTextFieldWidget(
                                   hintText: getTranslated('enter_refer_code', context),
                                   labelText: getTranslated('referral_code', context),
@@ -234,9 +229,10 @@ class SignUpWidgetState extends State<SignUpWidget> {
                       const SizedBox(height: Dimensions.paddingSizeDefault),
                       const ConditionCheckBox(),
 
-                      Container(margin: const EdgeInsets.all(Dimensions.paddingSizeDefault), child: Hero(
+                      Container(margin: const EdgeInsets.only(top: 18, bottom: 10), child: Hero(
                         tag: 'onTap',
                         child: CustomButton(
+                          isBuy: true,
                           isLoading: authProvider.isLoading,
                           onTap: authProvider.isAcceptTerms ?  () {
                             String firstName = _firstNameController.text.trim();
@@ -272,7 +268,7 @@ class SignUpWidgetState extends State<SignUpWidget> {
                             Row(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.center, children: [
                               Text(getTranslated('sign_in', context)!, style: titilliumRegular.copyWith(
                                 fontSize: Dimensions.fontSizeDefault,
-                                color: Theme.of(context).primaryColor,
+                                color: AsinDesign.gold,
                               )),
 
                               Icon(Icons.arrow_forward, size: Dimensions.iconSizeExtraSmall, color: Theme.of(context).primaryColor)

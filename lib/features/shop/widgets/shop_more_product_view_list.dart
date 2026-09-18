@@ -30,7 +30,7 @@ class _ShopMoreProductViewListState extends State<ShopMoreProductViewList> {
               offset: productController.sellerMoreProduct?.offset,
               itemView: MasonryGridView.count(
                 itemCount: productController.sellerMoreProduct?.products?.length,
-                crossAxisCount: ResponsiveHelper.isTab(context)? 3 : 2,
+                crossAxisCount: ResponsiveHelper.productGridCount(context),
                 padding: const EdgeInsets.all(0),
                 physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,

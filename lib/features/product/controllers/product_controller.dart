@@ -42,6 +42,11 @@ class ProductController extends ChangeNotifier {
   ProductModel? _featuredProductModel;
   ProductModel? get featuredProductModel => _featuredProductModel;
 
+  final List<Product> _websiteCoverFlowProducts = <Product>[];
+  List<Product> get websiteCoverFlowProducts => List<Product>.unmodifiable(_websiteCoverFlowProducts);
+  bool _websiteCoverFlowLoading = false;
+  bool get websiteCoverFlowLoading => _websiteCoverFlowLoading;
+
   final List<HomeCategoryProduct> _homeCategoryProductList = [];
   List<HomeCategoryProduct> get homeCategoryProductList => _homeCategoryProductList;
 
@@ -171,6 +176,29 @@ class ProductController extends ChangeNotifier {
 
   }
 
+
+
+  Future<void> getWebsiteCoverFlowProducts({bool isUpdate = false}) async {
+    if (_websiteCoverFlowLoading) return;
+    if (_websiteCoverFlowProducts.isNotEmpty && !isUpdate) return;
+
+    _websiteCoverFlowLoading = true;
+    if (isUpdate) notifyListeners();
+
+    try {
+      final products = await productServiceInterface?.getWebsiteCoverFlowProducts() ?? <Product>[];
+      if (products.isNotEmpty) {
+        _websiteCoverFlowProducts
+          ..clear()
+          ..addAll(products);
+      }
+    } catch (_) {
+      // Keep the previous website list, if any. The UI also has a safe API fallback.
+    } finally {
+      _websiteCoverFlowLoading = false;
+      notifyListeners();
+    }
+  }
 
 
   Future<void> getLatestProductList(int offset, {bool isUpdate = false}) async {

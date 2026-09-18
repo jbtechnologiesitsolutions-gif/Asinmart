@@ -7,6 +7,7 @@ import 'package:flutter_sixvalley_ecommerce/helper/date_converter.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/price_converter.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
@@ -99,26 +100,20 @@ class _OrderWidgetState extends State<OrderWidget> {
         ),
         padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
         decoration: BoxDecoration(
-          color: Theme.of(context).highlightColor,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withValues(alpha: .15),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          color: AsinDesign.card(context),
+          borderRadius: BorderRadius.circular(AsinDesign.radius),
+          border: Border.all(color: AsinDesign.line(context)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AsinDesign.radius),
                 border: Border.all(width: 1, color: Theme.of(context).primaryColor.withValues(alpha: 0.15)),
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AsinDesign.radius),
                 child: CustomImageWidget(
                   width: 65,
                   height: 65,
@@ -222,7 +217,7 @@ class _OrderWidgetState extends State<OrderWidget> {
                         ),
                         style: textBold.copyWith(
                           fontSize: Dimensions.fontSizeDefault,
-                          color: Theme.of(context).primaryColor,
+                          color: AsinDesign.primary,
                         ),
                       ),
 
@@ -261,16 +256,16 @@ class _OrderWidgetState extends State<OrderWidget> {
     switch (status) {
       case 'delivered':
       case 'confirmed':
-        return Theme.of(context).colorScheme.onTertiaryContainer.withValues(alpha: .1);
+        return AsinDesign.primarySoft;
       case 'pending':
-        return Theme.of(context).primaryColor.withValues(alpha: .1);
+        return AsinDesign.goldSoft;
       case 'processing':
-        return Theme.of(context).colorScheme.outline.withValues(alpha: .1);
+        return AsinDesign.softCard(context);
       case 'canceled':
       case 'failed':
-        return Theme.of(context).colorScheme.error.withValues(alpha: .1);
+        return AsinDesign.discountSoft;
       default:
-        return Theme.of(context).colorScheme.secondary.withValues(alpha: .1);
+        return AsinDesign.softCard(context);
     }
   }
 
@@ -278,16 +273,16 @@ class _OrderWidgetState extends State<OrderWidget> {
     switch (status) {
       case 'delivered':
       case 'confirmed':
-        return Theme.of(context).colorScheme.onTertiaryContainer;
+        return AsinDesign.primary;
       case 'pending':
-        return Theme.of(context).primaryColor;
+        return AsinDesign.primary;
       case 'processing':
-        return Theme.of(context).colorScheme.outline;
+        return AsinDesign.muted(context);
       case 'canceled':
       case 'failed':
-        return Theme.of(context).colorScheme.error;
+        return AsinDesign.discount;
       default:
-        return Theme.of(context).colorScheme.secondary;
+        return AsinDesign.primary;
     }
   }
 }

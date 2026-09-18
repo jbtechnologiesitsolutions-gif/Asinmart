@@ -13,6 +13,7 @@ import 'package:flutter_sixvalley_ecommerce/helper/price_converter.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/main.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/controllers/cart_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/coupon/controllers/coupon_controller.dart';
@@ -22,6 +23,7 @@ import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/amount_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/animated_custom_dialog_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_app_bar_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_image_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_button_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakbar_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_textfield_widget.dart';
@@ -127,8 +129,11 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                           ) :
 
                           Container(
-                            padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
-                            color: Theme.of(context).cardColor,
+                            padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                            decoration: BoxDecoration(
+                              color: AsinDesign.card(context),
+                              border: Border(top: BorderSide(color: AsinDesign.line(context))),
+                            ),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -136,7 +141,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                                 const CheckoutConditionCheckBox(),
                                 const SizedBox(height: Dimensions.paddingSizeSmall),
 
-                                CustomButton(onTap: (orderProvider.isLoading || !orderProvider.isAcceptTerms) ? null : () async {
+                                CustomButton(isBuy: true, onTap: (orderProvider.isLoading || !orderProvider.isAcceptTerms) ? null : () async {
                                   if(orderProvider.addressIndex == null && widget.hasPhysical) {
                                     RouterHelper.getSavedAddressListRoute(fromGuest: !Provider.of<AuthController>(context, listen: false).isLoggedIn());
                                     showCustomSnackBarWidget(getTranslated('select_a_shipping_address', context), Get.context!, snackBarType: SnackBarType.warning);
@@ -216,7 +221,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                                     }
                                   }
                                 },
-                                  buttonText: '${getTranslated('proceed', context)}',
+                                  buttonText: 'Place Order',
                                 )
                               ],
                             ),
@@ -243,9 +248,12 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                   Expanded(
                     child: ListView(
                       physics: const BouncingScrollPhysics(),
-                      padding: const EdgeInsets.all(0),
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 18),
                       children: [
-                        SizedBox(height: Dimensions.paddingSizeSmall),
+                        _CheckoutProgressHeader(
+                          paymentSelected: orderProvider.isCODChecked || orderProvider.isOfflineChecked || orderProvider.isWalletChecked || orderProvider.paymentMethodIndex >= 0,
+                        ),
+                        const SizedBox(height: 10),
 
                         Padding(
                           padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeDefault),
@@ -271,19 +279,18 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 0),
                           child: ChoosePaymentWidget(onlyDigital: widget.onlyDigital),
                         ),
-                        SizedBox(height: Dimensions.paddingSizeSmall),
+                        const SizedBox(height: 10),
+
+                        _CheckoutOrderItems(cartList: widget.cartList),
+                        const SizedBox(height: 10),
 
                         Container(
                           decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            boxShadow: [BoxShadow(color: Theme.of(context).hintColor.withValues(alpha:0.2), spreadRadius:3, blurRadius: 3)],
+                            color: AsinDesign.card(context),
+                            border: Border.all(color: AsinDesign.line(context)),
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(AsinDesign.radius)),
                           ),
-                          padding: const EdgeInsets.fromLTRB(
-                            Dimensions.paddingSizeDefault,
-                            Dimensions.paddingSizeDefault,
-                            Dimensions.paddingSizeDefault,
-                            Dimensions.paddingSizeSmall,
-                          ),
+                          padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
                           child: Text(
                             getTranslated('order_summary', context) ?? '',
                             style: textMedium.copyWith(
@@ -295,8 +302,16 @@ class CheckoutScreenState extends State<CheckoutScreen> {
 
 
                         Container(
-                          color: Theme.of(context).cardColor,
-                          padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
+                          decoration: BoxDecoration(
+                            color: AsinDesign.card(context),
+                            border: Border(
+                              left: BorderSide(color: AsinDesign.line(context)),
+                              right: BorderSide(color: AsinDesign.line(context)),
+                              bottom: BorderSide(color: AsinDesign.line(context)),
+                            ),
+                            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AsinDesign.radius)),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
                           child: Consumer<CheckoutController>(
                             builder: (context, checkoutController, child) {
                               _couponDiscount = Provider.of<CouponController>(context).discount ?? 0;
@@ -358,8 +373,9 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                         SizedBox(height: Dimensions.paddingSizeSmall),
                         Container(
                           decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            boxShadow: [BoxShadow(color: Theme.of(context).hintColor.withValues(alpha:0.2), spreadRadius:3, blurRadius: 3)],
+                            color: AsinDesign.card(context),
+                            border: Border.all(color: AsinDesign.line(context)),
+                            borderRadius: BorderRadius.circular(AsinDesign.radius),
                           ),
                           padding: const EdgeInsets.fromLTRB(
                             Dimensions.paddingSizeDefault,
@@ -461,3 +477,120 @@ class CheckoutScreenState extends State<CheckoutScreen> {
 
 }
 
+
+
+class _CheckoutProgressHeader extends StatelessWidget {
+  final bool paymentSelected;
+  const _CheckoutProgressHeader({required this.paymentSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: AsinDesign.cardDecoration(context, radius: AsinDesign.radiusLg),
+      child: Row(
+        children: [
+          const _CheckoutStepDot(label: 'Address', icon: Icons.check_rounded, completed: true),
+          Expanded(child: Container(height: 1, color: AsinDesign.primary)),
+          _CheckoutStepDot(
+            label: 'Payment',
+            icon: paymentSelected ? Icons.check_rounded : Icons.account_balance_wallet_outlined,
+            completed: paymentSelected,
+            active: !paymentSelected,
+          ),
+          Expanded(child: Container(height: 1, color: paymentSelected ? AsinDesign.primary : AsinDesign.line(context))),
+          _CheckoutStepDot(label: 'Review', icon: Icons.receipt_long_outlined, active: paymentSelected),
+        ],
+      ),
+    );
+  }
+}
+
+class _CheckoutStepDot extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool completed;
+  final bool active;
+  const _CheckoutStepDot({required this.label, required this.icon, this.completed = false, this.active = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = completed ? AsinDesign.primary : (active ? AsinDesign.gold : AsinDesign.softCard(context));
+    final fg = completed ? Colors.white : (active ? AsinDesign.primaryDeep : AsinDesign.muted(context));
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(color: bg, shape: BoxShape.circle, border: Border.all(color: active ? AsinDesign.gold : AsinDesign.line(context))),
+          child: Icon(icon, size: 13, color: fg),
+        ),
+        const SizedBox(height: 3),
+        Text(label, style: textMedium.copyWith(color: completed || active ? AsinDesign.primary : AsinDesign.muted(context), fontSize: 8.5)),
+      ],
+    );
+  }
+}
+
+class _CheckoutOrderItems extends StatelessWidget {
+  final List<CartModel> cartList;
+  const _CheckoutOrderItems({required this.cartList});
+
+  @override
+  Widget build(BuildContext context) {
+    final items = cartList.where((item) => item.isChecked ?? true).take(4).toList();
+    if (items.isEmpty) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: AsinDesign.cardDecoration(context, radius: AsinDesign.radiusLg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Order Items', style: textBold.copyWith(color: AsinDesign.foreground(context), fontSize: 13.5)),
+          const SizedBox(height: 9),
+          ...List.generate(items.length, (index) {
+            final item = items[index];
+            return Padding(
+              padding: EdgeInsets.only(bottom: index == items.length - 1 ? 0 : 9),
+              child: Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: AsinDesign.softCard(context),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AsinDesign.line(context)),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: CustomImageWidget(image: '${item.thumbnailFullUrl?.path ?? ''}', fit: BoxFit.contain),
+                  ),
+                  const SizedBox(width: 9),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(item.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: textMedium.copyWith(color: AsinDesign.foreground(context), fontSize: 10.5)),
+                        const SizedBox(height: 2),
+                        Text('Qty: ${item.quantity ?? 1}', style: textRegular.copyWith(color: AsinDesign.muted(context), fontSize: 9)),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    PriceConverter.convertPrice(context, ((item.price ?? 0) - (item.discount ?? 0)) * (item.quantity ?? 1)),
+                    style: textBold.copyWith(color: AsinDesign.primary, fontSize: 10.5),
+                  ),
+                ],
+              ),
+            );
+          }),
+          if (cartList.length > items.length) ...[
+            const SizedBox(height: 8),
+            Text('+ ${cartList.length - items.length} more item(s)', style: textMedium.copyWith(color: AsinDesign.muted(context), fontSize: 9.5)),
+          ],
+        ],
+      ),
+    );
+  }
+}

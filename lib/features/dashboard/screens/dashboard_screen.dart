@@ -20,7 +20,7 @@ import 'package:flutter_sixvalley_ecommerce/features/home/screens/aster_theme_ho
 import 'package:flutter_sixvalley_ecommerce/features/home/screens/fashion_theme_home_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/screens/home_screens.dart';
 import 'package:flutter_sixvalley_ecommerce/features/more/screens/more_screen_view.dart';
-import 'package:flutter_sixvalley_ecommerce/features/order/screens/order_screen.dart';
+import 'package:flutter_sixvalley_ecommerce/features/shop/screens/all_shop_screen.dart';
 import 'package:provider/provider.dart';
 
 class DashBoardScreen extends StatefulWidget {
@@ -69,16 +69,11 @@ class DashBoardScreenState extends State<DashBoardScreen> {
     HomePage.loadData(false);
 
       _screens = [
-        NavigationModel(
-          name: 'home',
-          icon: Images.homeImage,
-          screen: const HomePage(),
-        ),
-
+        NavigationModel(name: 'home', icon: Images.homeImage, screen: const HomePage()),
         NavigationModel(name: 'CATEGORY', icon: Images.category, screen: const CategoryScreen()),
+        NavigationModel(name: 'stores', icon: Images.storeIcon, screen: const AllTopSellerScreen(title: 'Stores')),
         NavigationModel(name: 'cart', icon: Images.cartArrowDownImage, screen: const CartScreen(showBackButton: false, fromDashboard: true), showCartIcon: true),
-        NavigationModel(name: 'orders', icon: Images.shoppingImage, screen: const OrderScreen(isBacButtonExist: false, fromDashboard: true)),
-        NavigationModel(name: 'more', icon: Images.moreImage, screen: const MoreScreen()),
+        NavigationModel(name: 'profile', icon: Images.moreImage, screen: const MoreScreen()),
       ];
 
 
@@ -110,15 +105,15 @@ class DashBoardScreenState extends State<DashBoardScreen> {
         bottomNavigationBar: SafeArea(
           top: false,
           child: Container(
-            height: 70,
+            height: 64,
             decoration: BoxDecoration(
-              color: Colors.white,
-              border: const Border(top: BorderSide(color: Color(0xFFE8EBE7))),
+              color: Theme.of(context).colorScheme.surface,
+              border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
               boxShadow: [
                 BoxShadow(
-                  offset: const Offset(0, -4),
-                  blurRadius: 18,
-                  color: Colors.black.withValues(alpha: .04),
+                  offset: const Offset(0, -2),
+                  blurRadius: 10,
+                  color: Colors.black.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? .18 : .05),
                 ),
               ],
             ),

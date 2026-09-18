@@ -9,6 +9,7 @@ import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/features/notification/controllers/notification_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/main.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_app_bar_widget.dart';
@@ -44,7 +45,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(appBar:  CustomAppBar(title: getTranslated('notification', context), onBackPressed: (){
+    return Scaffold(backgroundColor: AsinDesign.canvas(context), appBar:  CustomAppBar(title: getTranslated('notification', context), onBackPressed: (){
         if(Navigator.of(context).canPop()){
           Navigator.of(context).pop();
         }else{

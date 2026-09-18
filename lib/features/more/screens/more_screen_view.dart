@@ -8,6 +8,7 @@ import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dar
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/controllers/splash_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/theme/controllers/theme_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
@@ -47,20 +48,21 @@ class _MoreScreenState extends State<MoreScreen> {
     // var authController = Provider.of<AuthController>(context, listen: false);
 
     return Scaffold(
+      backgroundColor: AsinDesign.canvas(context),
       body: CustomScrollView(slivers: [
         SliverAppBar(
           floating: true,
           elevation: 0,
-          expandedHeight: 160,
+          expandedHeight: 150,
           pinned: true,
           centerTitle: false,
           automaticallyImplyLeading: false,
-          backgroundColor: Theme.of(context).highlightColor,
-          collapsedHeight: 160,
+          backgroundColor: AsinDesign.canvas(context),
+          collapsedHeight: 150,
           flexibleSpace: const ProfileInfoSectionWidget()
         ),
 
-        SliverToBoxAdapter(child: Container(decoration: BoxDecoration(color: Theme.of(context).scaffoldBackgroundColor),
+        SliverToBoxAdapter(child: Container(decoration: BoxDecoration(color: AsinDesign.canvas(context)),
           child: Consumer<AuthController>(
             builder: (ctx, authController, _) {
               return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -70,19 +72,17 @@ class _MoreScreenState extends State<MoreScreen> {
                   Padding(padding: const EdgeInsets.fromLTRB( Dimensions.paddingSizeDefault,
                       Dimensions.paddingSizeDefault,  Dimensions.paddingSizeDefault,0),
                     child: Text(getTranslated('general', context)??'',
-                      style: textRegular.copyWith(fontSize: Dimensions.fontSizeExtraLarge,
-                          color: Theme.of(context).colorScheme.onPrimary), ),),
+                      style: textBold.copyWith(fontSize: Dimensions.fontSizeLarge,
+                          color: Theme.of(context).textTheme.bodyLarge?.color, fontWeight: FontWeight.w700), ),),
 
                   Consumer<SplashController>(
                       builder: (context, splashController, _) {
                         return Padding(padding:  const EdgeInsets.all(Dimensions.paddingSizeDefault),
                           child: Container(padding:  const EdgeInsets.all(Dimensions.paddingSizeSmall),
                             decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(Dimensions.fontSizeExtraSmall),
-                                boxShadow: [BoxShadow(color: Theme.of(context).hintColor.withValues(alpha:.05),
-                                    blurRadius: 1, spreadRadius: 1, offset: const Offset(0,1))],
-                                color: Provider.of<ThemeController>(context).darkTheme ?
-                                Colors.white.withValues(alpha:.05) : Theme.of(context).cardColor),
+                                borderRadius: BorderRadius.circular(AsinDesign.radius),
+                                border: Border.all(color: AsinDesign.line(context)),
+                                color: AsinDesign.card(context)),
                             child: Column(children: [
 
 
@@ -172,8 +172,8 @@ class _MoreScreenState extends State<MoreScreen> {
                   Padding(padding: const EdgeInsets.fromLTRB( Dimensions.paddingSizeDefault,
                     Dimensions.paddingSizeDefault,  Dimensions.paddingSizeDefault,0),
                     child: Text(getTranslated('help_and_support', context)??'',
-                      style: textRegular.copyWith(fontSize: Dimensions.fontSizeExtraLarge,
-                        color: Theme.of(context).colorScheme.onPrimary))
+                      style: textBold.copyWith(fontSize: Dimensions.fontSizeLarge,
+                        color: Theme.of(context).textTheme.bodyLarge?.color, fontWeight: FontWeight.w700))
                   ),
 
 
@@ -181,11 +181,9 @@ class _MoreScreenState extends State<MoreScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
                       decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(Dimensions.fontSizeExtraSmall),
-                          boxShadow: [BoxShadow(color: Theme.of(context).hintColor.withValues(alpha:.05),
-                              blurRadius: 1, spreadRadius: 1,offset: const Offset(0,1))],
-                          color: Provider.of<ThemeController>(context).darkTheme ?
-                          Colors.white.withValues(alpha:.05) : Theme.of(context).cardColor),
+                          borderRadius: BorderRadius.circular(AsinDesign.radius),
+                          border: Border.all(color: AsinDesign.line(context)),
+                          color: AsinDesign.card(context)),
                       child: Consumer<SplashController>(
                         builder: (context, splashController, _){
                           return Column(children: [
@@ -275,7 +273,7 @@ class _MoreScreenState extends State<MoreScreen> {
 
 
                   ListTile(
-                    leading: SizedBox(width: 30, child: Image.asset(Images.logOut, color: Theme.of(context).primaryColor,)),
+                    leading: SizedBox(width: 30, child: Image.asset(Images.logOut, color: AsinDesign.discount,)),
                     title: Text(!authController.isLoggedIn() ? getTranslated('sign_in', context)! : getTranslated('sign_out', context)!,
                       style: titilliumRegular.copyWith(fontSize: Dimensions.fontSizeLarge)
                     ),

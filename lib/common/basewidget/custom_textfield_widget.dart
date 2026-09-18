@@ -140,8 +140,8 @@ class _CustomTextFieldWidgetState extends State<CustomTextFieldWidget> {
         if (widget.titleText != null)
           RichText(text: TextSpan(
               text: widget.titleText ?? "", style: Theme.of(context).textTheme.titleMedium!.copyWith(
-              fontWeight: FontWeight.w400,
-              fontSize: 14, color: const Color(0xFF202532)), children: [
+              fontWeight: FontWeight.w600,
+              fontSize: 14, color: Theme.of(context).textTheme.bodyLarge?.color), children: [
                 if (widget.isRequiredFill)
                   TextSpan(text: " *", style: Theme.of(context).textTheme.titleMedium!.copyWith(
                         fontWeight: FontWeight.w500, fontSize: 16, color: Colors.red))])),
@@ -155,7 +155,7 @@ class _CustomTextFieldWidgetState extends State<CustomTextFieldWidget> {
           readOnly: widget.readOnly,
           onTap: widget.onTap,
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          style: textRegular.copyWith(fontSize: Dimensions.fontSizeLarge),
+          style: textRegular.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).textTheme.bodyLarge?.color),
           textInputAction: widget.inputAction,
           keyboardType:widget.inputType,
           cursorColor: Theme.of(context).primaryColor,
@@ -177,19 +177,30 @@ class _CustomTextFieldWidgetState extends State<CustomTextFieldWidget> {
             alignLabelWithHint: false,
             floatingLabelBehavior: FloatingLabelBehavior.auto,
             border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: widget.showBorder ? widget.borderColor: Colors.transparent,
-                  width: widget.showBorder ? 0 : .75,)),
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              borderSide: BorderSide(
+                color: widget.showBorder ? Theme.of(context).dividerColor : Colors.transparent,
+                width: widget.showBorder ? 1 : 0,
+              ),
+            ),
 
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: widget.showBorder ? Theme.of(context).primaryColor : Colors.transparent,
-                  width: widget.showBorder ? 0 : .75,)),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              borderSide: BorderSide(
+                color: widget.showBorder ? Theme.of(context).primaryColor : Colors.transparent,
+                width: widget.showBorder ? 1.5 : 0,
+              ),
+            ),
 
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: widget.showBorder ? widget.borderColor: Colors.transparent,
-                width: widget.showBorder ? 0 : .75,)),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              borderSide: BorderSide(
+                color: widget.showBorder ? Theme.of(context).dividerColor : Colors.transparent,
+                width: widget.showBorder ? 1 : 0,
+              ),
+            ),
 
-            fillColor: Theme.of(context).cardColor,
+            fillColor: Theme.of(context).colorScheme.surface,
             floatingLabelStyle: widget.showLabelText ? textRegular.copyWith(fontSize: Dimensions.fontSizeSmall,
                 color: Theme.of(context).hintColor.withValues(alpha:.75)) : null,
             filled: widget.filled,

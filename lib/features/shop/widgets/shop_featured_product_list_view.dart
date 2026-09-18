@@ -32,7 +32,7 @@ class _ShopFeaturedProductViewListState extends State<ShopFeaturedProductViewLis
           itemView: RepaintBoundary(
             child: MasonryGridView.count(
               itemCount: productController.sellerWiseFeaturedProduct?.products?.length,
-              crossAxisCount: ResponsiveHelper.isTab(context)? 3: 2,
+              crossAxisCount: ResponsiveHelper.productGridCount(context),
               padding: const EdgeInsets.all(0),
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,

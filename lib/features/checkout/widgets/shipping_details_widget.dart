@@ -1,401 +1,185 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_asset_image_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/address/controllers/address_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/address/domain/models/address_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/checkout/controllers/checkout_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/checkout/widgets/create_account_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
-import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
-import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
-import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
 import 'package:provider/provider.dart';
-
 
 class ShippingDetailsWidget extends StatefulWidget {
   final bool hasPhysical;
   final bool billingAddress;
   final GlobalKey<FormState> passwordFormKey;
 
-  const ShippingDetailsWidget({super.key, required this.hasPhysical, required this.billingAddress, required this.passwordFormKey});
+  const ShippingDetailsWidget({
+    super.key,
+    required this.hasPhysical,
+    required this.billingAddress,
+    required this.passwordFormKey,
+  });
 
   @override
   State<ShippingDetailsWidget> createState() => _ShippingDetailsWidgetState();
 }
 
 class _ShippingDetailsWidgetState extends State<ShippingDetailsWidget> {
-
   @override
   Widget build(BuildContext context) {
-    bool isGuestMode = !Provider.of<AuthController>(context, listen: false).isLoggedIn();
+    final isGuestMode = !Provider.of<AuthController>(context, listen: false).isLoggedIn();
+
     return Consumer<CheckoutController>(
-        builder: (context, shippingProvider,_) {
-          if(shippingProvider.sameAsBilling && !widget.hasPhysical) {
-            shippingProvider.setSameAsBilling(isUpdate: false);
-          }
-          
-          return Consumer<AddressController>(
-            builder: (context, locationProvider, _) {
-              return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-
-                widget.hasPhysical?
-                Container(
-                  decoration: BoxDecoration(
-                    boxShadow: [BoxShadow(color: Theme.of(context).hintColor.withValues(alpha:0.3), spreadRadius:2, blurRadius: 10)],
-                    color: Theme.of(context).cardColor,
-                  ),
-                  child: Column(crossAxisAlignment:CrossAxisAlignment.start, children: [
-
-                    Padding(
-                      padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
-                      child: Row(mainAxisAlignment:MainAxisAlignment.start, crossAxisAlignment:CrossAxisAlignment.start, children: [
-                        Expanded(
-                          child: Row(
-                            children: [
-                              CustomAssetImageWidget(Images.deliveryTo, height: 20, width: 20),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraSmall),
-                                child: Text(
-                                  '${getTranslated('delivery_to', context)}',
-                                  style: textMedium.copyWith(
-                                    fontSize: Dimensions.fontSizeLarge,
-                                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-
-                        InkWell(
-                          onTap: () {
-                            RouterHelper.getSavedAddressListRoute(fromGuest: isGuestMode);
-                          },
-                          child: SizedBox(width: 20, child: Image.asset(Images.edit,
-                            scale: 3, color: Theme.of(context).primaryColor,)),
-                        ),]
-                      ),
-                    ),
-
-                    SizedBox(height: 1, child: const Divider(thickness: .200)),
-                    const SizedBox(height: Dimensions.paddingSizeDefault),
-
-                    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      (shippingProvider.addressIndex != null && locationProvider.addressList != null && locationProvider.addressList!.isNotEmpty) ?
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
-                        child: Column(children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      '${getTranslated('name', context)} : ',
-                                      style: textMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).textTheme.titleMedium?.color),
-                                    ),
-
-                                    Expanded(
-                                      child: Text(
-                                        locationProvider.addressList![shippingProvider.addressIndex!].contactPersonName ?? '',
-                                        style: textMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).textTheme.bodyLarge?.color,  overflow: TextOverflow.ellipsis),
-                                        maxLines: 1,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              Expanded(
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      '${getTranslated('phone', context)} : ',
-                                      style: textMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).textTheme.titleMedium?.color,),
-                                    ),
-
-                                    Expanded(
-                                      child: Text(
-                                        locationProvider.addressList![shippingProvider.addressIndex!].phone ?? '',
-                                        style: textMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).textTheme.bodyLarge?.color,  overflow: TextOverflow.ellipsis),
-                                        maxLines: 1,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: Dimensions.paddingSizeDefault),
-
-                          Container(
-                            padding: EdgeInsets.all(Dimensions.paddingSizeSmall),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                                color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.07)
-                            ),
-                            child: Row(
-                              children: [
-                                SizedBox(width: Dimensions.paddingSizeExtraSmall),
-                                CustomAssetImageWidget(Images.savedAddressLocationIcon, height: 20, width: 20),
-                                SizedBox(width: Dimensions.paddingSizeSmall),
-
-                                Text(
-                                  '${locationProvider.addressList![shippingProvider.addressIndex!].addressType ?? ''}: ',
-                                  style: textMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).primaryColor),
-                                ),
-
-                                Expanded(
-                                  child: Text(
-                                    '${locationProvider.addressList![shippingProvider.addressIndex!].address ?? ''}: ',
-                                    style: textMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).textTheme.bodyLarge?.color, overflow: TextOverflow.ellipsis), maxLines: 1,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: Dimensions.paddingSizeDefault),
-                        ]),
-                      ) : SizedBox(
-                        height: 80,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Row(children: []),
-
-                            CustomAssetImageWidget(Images.deliveryTo, height: 30, width: 30, color: Theme.of(context).hintColor),
-                            SizedBox(height: Dimensions.paddingSizeSmall),
-
-                            Text(
-                              '${getTranslated('please_set_your_delivery_info', context)}',
-                              style: textMedium.copyWith(fontSize: Dimensions.fontSizeLarge, color: Theme.of(context).hintColor,),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                    ]),
-                  ])
-                ) : const SizedBox(),
-                SizedBox(height: widget.hasPhysical? Dimensions.paddingSizeSmall:0),
-
-
-                isGuestMode ? (widget.hasPhysical)?
-                CreateAccountWidget(formKey: widget.passwordFormKey) : const SizedBox() : const SizedBox(),
-
-
-                isGuestMode ? const SizedBox(height: Dimensions.paddingSizeSmall) : const SizedBox(),
-                if(widget.billingAddress || shippingProvider.sameAsBilling)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      boxShadow: [BoxShadow(color: Theme.of(context).hintColor.withValues(alpha:0.2), spreadRadius:3, blurRadius: 3)],
-                    ),
-                    child: Column(crossAxisAlignment:CrossAxisAlignment.start, children: [
-
-                      Padding(
-                        padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
-                        child: Row(mainAxisAlignment:MainAxisAlignment.start, crossAxisAlignment:CrossAxisAlignment.center, children: [
-                          Expanded(
-                            child: Row(
-                              children: [
-                                CustomAssetImageWidget(Images.billingTo, height: 20, width: 20),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraSmall),
-                                  child: Text(
-                                    '${getTranslated('billing_to', context)}',
-                                    style: textMedium.copyWith(
-                                      fontSize: Dimensions.fontSizeLarge,
-                                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-
-
-                          if(widget.hasPhysical && widget.billingAddress)
-                            Container(
-                              padding:  EdgeInsets.all(Dimensions.paddingSizeExtraSmall),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                                color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.07),
-                              ),
-                              child: InkWell(highlightColor: Colors.transparent,focusColor: Colors.transparent, splashColor: Colors.transparent,
-                                onTap: ()=> shippingProvider.setSameAsBilling(),
-                                child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                                  SizedBox(width: Dimensions.paddingSizeExtraSmall),
-                                  SizedBox(width : 18, height : 18,
-                                      child: Container(alignment: Alignment.center,
-                                          decoration: BoxDecoration(
-                                            border: Border.all(color: Theme.of(context).primaryColor.withValues(alpha:.75), width: 1.5),
-                                            borderRadius: BorderRadius.circular(2),
-                                            color: shippingProvider.sameAsBilling ?  Theme.of(context).primaryColor : Theme.of(context).cardColor,
-                                          ),
-                                          child: Icon(CupertinoIcons.checkmark_alt,size: 15,
-                                              color: shippingProvider.sameAsBilling ? Theme.of(context).cardColor : Colors.transparent)
-                                      )
-                                  ),
-
-
-                                  Padding(padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraSmall),
-                                      child: Text(getTranslated('same_as_delivery', context)!,
-                                          style: textRegular.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).textTheme.bodyLarge?.color))
-                                  )
-
-                                ]),
-                              ),
-                            ),
-
-                          if(!shippingProvider.sameAsBilling)
-                            SizedBox(width: Dimensions.paddingSizeSmall),
-
-                          if(!shippingProvider.sameAsBilling)
-                            InkWell(
-                              onTap: () => RouterHelper.getSavedBillingAddressListRoute(fromGuest: isGuestMode),
-                              child: SizedBox(width: 20,child: Image.asset(Images.edit, scale: 3, color: Theme.of(context).primaryColor,)),
-                            ),
-                        ]),
-                      ),
-
-                      if(!shippingProvider.sameAsBilling)...[
-                        SizedBox(height: 1, child: const Divider(thickness: .200)),
-                        const SizedBox(height: Dimensions.paddingSizeDefault),
-                      ],
-
-
-                      if(!shippingProvider.sameAsBilling)
-                        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          (shippingProvider.billingAddressIndex != null && (locationProvider.addressList?.isNotEmpty ?? false)) ?
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
-                            child: Column(children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        '${getTranslated('name', context)} : ',
-                                        style: textMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).textTheme.bodySmall?.color),
-                                      ),
-
-                                      Text(
-                                        locationProvider.addressList![shippingProvider.billingAddressIndex!].contactPersonName ?? '',
-                                        style: textMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).textTheme.bodyLarge?.color),
-                                      ),
-                                    ],
-                                  ),
-
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        '${getTranslated('phone', context)} : ',
-                                        style: textMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).textTheme.bodySmall?.color),
-                                      ),
-
-                                      Text(
-                                        locationProvider.addressList![shippingProvider.billingAddressIndex!].phone ?? '',
-                                        style: textMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).textTheme.bodyLarge?.color),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: Dimensions.paddingSizeDefault),
-
-                              Container(
-                                padding: EdgeInsets.all(Dimensions.paddingSizeSmall),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                                  color: Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.07)
-                                ),
-                                child: Row(
-                                  children: [
-                                    SizedBox(width: Dimensions.paddingSizeExtraSmall),
-                                    CustomAssetImageWidget(Images.savedAddressLocationIcon, height: 20, width: 20),
-                                    SizedBox(width: Dimensions.paddingSizeSmall),
-
-                                    Text(
-                                      '${locationProvider.addressList![shippingProvider.billingAddressIndex!].addressType ?? ''}: ',
-                                      style: textMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).primaryColor),
-                                    ),
-
-                                    Expanded(
-                                      child: Text(
-                                        '${locationProvider.addressList![shippingProvider.billingAddressIndex!].address ?? ''}: ',
-                                        style: textMedium.copyWith(fontSize: Dimensions.fontSizeDefault, color: Theme.of(context).textTheme.bodyLarge?.color, overflow: TextOverflow.ellipsis), maxLines: 1,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(height: Dimensions.paddingSizeDefault),
-                            ]),
-                          ) :
-                          SizedBox(
-                            height: 80,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Row(children: []),
-                                CustomAssetImageWidget(Images.deliveryTo, height: 30, width: 30, color: Theme.of(context).hintColor),
-                                SizedBox(height: Dimensions.paddingSizeSmall),
-
-                                Text(
-                                  '${getTranslated('please_set_your_billing_info', context)}',
-                                  style: textMedium.copyWith(fontSize: Dimensions.fontSizeLarge, color: Theme.of(context).hintColor,),
-                                ),
-                              ],
-                            ),
-                          )
-                        ]),
-
-                    ]),
-                  ),
-
-
-                isGuestMode ? (!widget.hasPhysical)?
-                CreateAccountWidget(formKey: widget.passwordFormKey) : const SizedBox() : const SizedBox(),
-
-
-
-
-                ]);
-            }
-          );
+      builder: (context, checkout, _) {
+        if (checkout.sameAsBilling && !widget.hasPhysical) {
+          checkout.setSameAsBilling(isUpdate: false);
         }
+        return Consumer<AddressController>(
+          builder: (context, addressController, _) {
+            final addresses = addressController.addressList ?? <AddressModel>[];
+            final AddressModel? shippingAddress = checkout.addressIndex != null &&
+                    checkout.addressIndex! >= 0 && checkout.addressIndex! < addresses.length
+                ? addresses[checkout.addressIndex!]
+                : null;
+            final AddressModel? billingAddress = checkout.billingAddressIndex != null &&
+                    checkout.billingAddressIndex! >= 0 && checkout.billingAddressIndex! < addresses.length
+                ? addresses[checkout.billingAddressIndex!]
+                : null;
+
+            return Column(
+              children: [
+                if (widget.hasPhysical)
+                  _CheckoutAddressCard(
+                    title: 'Delivery Address',
+                    address: shippingAddress,
+                    emptyText: 'Select a delivery address',
+                    onChange: () => RouterHelper.getSavedAddressListRoute(fromGuest: isGuestMode),
+                  ),
+
+                if (isGuestMode && widget.hasPhysical) ...[
+                  const SizedBox(height: 10),
+                  CreateAccountWidget(formKey: widget.passwordFormKey),
+                ],
+
+                if (widget.billingAddress) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: AsinDesign.cardDecoration(context, radius: AsinDesign.radiusLg),
+                    child: Row(
+                      children: [
+                        InkWell(
+                          onTap: () => checkout.setSameAsBilling(),
+                          borderRadius: BorderRadius.circular(5),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 160),
+                            width: 21,
+                            height: 21,
+                            decoration: BoxDecoration(
+                              color: checkout.sameAsBilling ? AsinDesign.primary : AsinDesign.card(context),
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(color: checkout.sameAsBilling ? AsinDesign.primary : AsinDesign.line(context)),
+                            ),
+                            child: checkout.sameAsBilling ? const Icon(Icons.check_rounded, size: 14, color: Colors.white) : null,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text('Billing address same as delivery', style: textMedium.copyWith(color: AsinDesign.foreground(context), fontSize: 10.5)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (!checkout.sameAsBilling) ...[
+                    const SizedBox(height: 10),
+                    _CheckoutAddressCard(
+                      title: 'Billing Address',
+                      address: billingAddress,
+                      emptyText: 'Select a billing address',
+                      onChange: () => RouterHelper.getSavedBillingAddressListRoute(fromGuest: isGuestMode),
+                    ),
+                  ],
+                ] else if (!widget.hasPhysical) ...[
+                  const SizedBox(height: 10),
+                  _CheckoutAddressCard(
+                    title: 'Billing Address',
+                    address: billingAddress,
+                    emptyText: 'Select a billing address',
+                    onChange: () => RouterHelper.getSavedBillingAddressListRoute(fromGuest: isGuestMode),
+                  ),
+                  if (isGuestMode) ...[
+                    const SizedBox(height: 10),
+                    CreateAccountWidget(formKey: widget.passwordFormKey),
+                  ],
+                ],
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }
 
-class AddressInfoItem extends StatelessWidget {
-  final String? icon;
-  final String? title;
-  const AddressInfoItem({super.key, this.icon, this.title});
+class _CheckoutAddressCard extends StatelessWidget {
+  final String title;
+  final AddressModel? address;
+  final String emptyText;
+  final VoidCallback onChange;
+
+  const _CheckoutAddressCard({
+    required this.title,
+    required this.address,
+    required this.emptyText,
+    required this.onChange,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeExtraSmall),
-      child: Row(children: [
-        SizedBox(width: 18, child: Image.asset(icon!)),
-        Expanded(child: Padding(padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
-            child: Text(title??'', style: textRegular.copyWith(color: Theme.of(context).textTheme.bodyLarge?.color), maxLines: 2, overflow: TextOverflow.fade )))]),
+    final addressLine = address == null
+        ? ''
+        : [address!.address, address!.city, address!.state, address!.zip]
+            .where((e) => e != null && e!.trim().isNotEmpty)
+            .map((e) => e!.trim())
+            .join(', ');
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: AsinDesign.cardDecoration(context, radius: AsinDesign.radiusLg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(color: AsinDesign.primarySoft, borderRadius: BorderRadius.circular(8)),
+                child: const Icon(Icons.location_on_outlined, size: 18, color: AsinDesign.primary),
+              ),
+              const SizedBox(width: 8),
+              Expanded(child: Text(title, style: textBold.copyWith(color: AsinDesign.foreground(context), fontSize: 13))),
+              TextButton(
+                onPressed: onChange,
+                style: TextButton.styleFrom(minimumSize: Size.zero, padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3)),
+                child: Text(address == null ? 'Select' : 'Change', style: textBold.copyWith(color: AsinDesign.primary, fontSize: 10.5)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (address != null) ...[
+            Text(address!.contactPersonName ?? '', style: textBold.copyWith(color: AsinDesign.foreground(context), fontSize: 11.5)),
+            const SizedBox(height: 3),
+            Text(addressLine, style: textRegular.copyWith(color: AsinDesign.muted(context), fontSize: 9.8, height: 1.4)),
+            if ((address!.phone ?? '').isNotEmpty) ...[
+              const SizedBox(height: 3),
+              Text(address!.phone!, style: textRegular.copyWith(color: AsinDesign.muted(context), fontSize: 9.5)),
+            ],
+          ] else
+            Text(emptyText, style: textRegular.copyWith(color: AsinDesign.muted(context), fontSize: 10.5)),
+        ],
+      ),
     );
-  }
-}
-extension StringExtension on String {
-  String capitalize() {
-    return "${this[0].toUpperCase()}${substring(1).toLowerCase()}";
   }
 }

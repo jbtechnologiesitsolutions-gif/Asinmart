@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/controllers/seller_product_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/product/domain/models/product_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product_details/domain/models/product_details_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product_details/domain/services/product_details_service_interface.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product_details/enums/preview_type.dart';
@@ -87,7 +88,11 @@ class ProductDetailsController extends ChangeNotifier {
     _variantIndex = 0;
     _quantity = minimumOrderQuantity ?? product.minimumOrderQty ?? 1;
     final choices = product.choiceOptions ?? [];
-    _variationIndex = List<int>.filled(choices.length, 0);
+    _variationIndex = choices.map((choice) {
+      final options = choice.options ?? <String>[];
+      final firstValid = options.indexWhere((option) => option.trim().isNotEmpty);
+      return firstValid >= 0 ? firstValid : 0;
+    }).toList();
   }
 
   void ensureDataInitialized(ProductDetailsModel product, int? minimumOrderQuantity, BuildContext context) {
@@ -153,6 +158,10 @@ class ProductDetailsController extends ChangeNotifier {
 
   void setCartVariationIndex(int? minimumOrderQuantity, int index, int i, BuildContext context) {
     if (_variationIndex == null || index < 0 || index >= _variationIndex!.length) return;
+    final choices = _productDetailsModel?.choiceOptions ?? <ChoiceOptions>[];
+    if(index >= choices.length) return;
+    final options = choices[index].options ?? <String>[];
+    if(i < 0 || i >= options.length || options[i].trim().isEmpty) return;
     _variationIndex![index] = i;
     _quantity = minimumOrderQuantity ?? _productDetailsModel?.minimumOrderQty ?? 1;
     notifyListeners();

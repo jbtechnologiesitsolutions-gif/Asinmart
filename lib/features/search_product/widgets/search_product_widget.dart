@@ -5,6 +5,7 @@ import 'package:flutter_sixvalley_ecommerce/helper/responsive_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/features/search_product/controllers/search_product_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/theme/controllers/theme_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
@@ -33,7 +34,7 @@ class _SearchProductWidgetState extends State<SearchProductWidget> {
           return Column(children: [
             Padding(padding: const EdgeInsets.symmetric(horizontal: 5.0),
               child: Row(children: [
-                Expanded(child: Text('${getTranslated('product_list', context)}',style: robotoBold,)),
+                Expanded(child: Text('${searchProductController.searchedProduct?.totalSize ?? searchProductController.searchedProduct?.products?.length ?? 0} results', style: robotoBold.copyWith(color: AsinDesign.foreground(context)))),
 
 
                 InkWell(onTap: () => showModalBottomSheet(context: context,
@@ -42,13 +43,13 @@ class _SearchProductWidgetState extends State<SearchProductWidget> {
                   child: Stack(children: [
                     Container(padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeExtraSmall,
                       horizontal: Dimensions.paddingSizeExtraSmall),
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(5),
-                        border: Border.all(color: Theme.of(context).hintColor.withValues(alpha:.25))),
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(AsinDesign.radius),
+                        border: Border.all(color: AsinDesign.line(context))),
                       child: SizedBox(width: 25,height: 24,child: Image.asset(Images.sort,
                         color: Provider.of<ThemeController>(context, listen: false).darkTheme?
                         Colors.white:Theme.of(context).primaryColor)),),
                     if(searchProductController.isSortingApplied)
-                    CircleAvatar(radius: 5, backgroundColor: Theme.of(context).primaryColor,)
+                    const CircleAvatar(radius: 5, backgroundColor: AsinDesign.gold,)
                     ],
                   )),
                 const SizedBox(width: Dimensions.paddingSizeDefault,),
@@ -67,7 +68,7 @@ class _SearchProductWidgetState extends State<SearchProductWidget> {
                             color: Provider.of<ThemeController>(context, listen: false).darkTheme?
                             Colors.white:Theme.of(context).primaryColor))),
                     if(searchProductController.isFilterApplied)
-                      CircleAvatar(radius: 5, backgroundColor: Theme.of(context).primaryColor,)
+                      const CircleAvatar(radius: 5, backgroundColor: AsinDesign.gold,)
                     ],
                   ))])),
 
@@ -87,7 +88,7 @@ class _SearchProductWidgetState extends State<SearchProductWidget> {
                       child: MasonryGridView.count(
                         physics: const NeverScrollableScrollPhysics(),
                         padding: const EdgeInsets.all(0),
-                        crossAxisCount: ResponsiveHelper.isTab(context)? 3: 2,
+                        crossAxisCount: ResponsiveHelper.productGridCount(context),
                         shrinkWrap: true,
                         itemCount: searchProductController.searchedProduct!.products!.length,
                         itemBuilder: (BuildContext context, int index) {

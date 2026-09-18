@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/data/model/api_response.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/domain/repositories/product_repository_interface.dart';
+import 'package:flutter_sixvalley_ecommerce/features/product/domain/models/product_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/domain/services/product_service_interface.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/enums/product_type.dart';
 
@@ -29,6 +30,11 @@ class ProductService implements ProductServiceInterface{
   @override
   Future<ApiResponseModel<T>> getHomeCategoryProductList<T>({required DataSourceEnum source}) async{
     return await productRepositoryInterface.getHomeCategoryProductList(source: source);
+  }
+
+  @override
+  Future<List<Product>> getWebsiteCoverFlowProducts() async {
+    return await productRepositoryInterface.getWebsiteCoverFlowProducts();
   }
 
   @override

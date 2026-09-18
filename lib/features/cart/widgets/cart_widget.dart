@@ -11,6 +11,7 @@ import 'package:flutter_sixvalley_ecommerce/localization/controllers/localizatio
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/controllers/cart_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/main.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_image_widget.dart';
@@ -46,11 +47,12 @@ class CartWidget extends StatelessWidget {
         ),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(AsinDesign.radius),
+            color: AsinDesign.card(context),
+            border: Border.all(color: AsinDesign.line(context)),
           ),
           child: Slidable(
-            key: const ValueKey(0),
+            key: ValueKey(cartModel?.id ?? index),
             endActionPane: ActionPane(
               extentRatio: .25,
               motion: const ScrollMotion(),
@@ -69,11 +71,18 @@ class CartWidget extends StatelessWidget {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 500),
               decoration: BoxDecoration(
-                color: (highLightColor != Theme.of(context).cardColor && minOrderQty) ? highLightColor : Theme.of(context).colorScheme.tertiaryContainer.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                color: (highLightColor != Theme.of(context).cardColor && minOrderQty)
+                    ? highLightColor
+                    : Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(AsinDesign.radius),
                 // cartModel?.isChecked
 
-                border: Border.all(color: (isValidate && (cartModel?.isChecked ?? false) && minOrderQty) ?  Theme.of(context).colorScheme.error : Colors.transparent, width: 1),
+                border: Border.all(
+                  color: (isValidate && (cartModel?.isChecked ?? false) && minOrderQty)
+                      ? Theme.of(context).colorScheme.error
+                      : Theme.of(context).dividerColor.withValues(alpha: .38),
+                  width: 1,
+                ),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -171,85 +180,46 @@ class CartWidget extends StatelessWidget {
 class _CartQuantityControlsWidget extends StatelessWidget {
   final CartModel? cartModel;
   final int index;
-  const _CartQuantityControlsWidget({
-    required this.cartModel,
-    required this.index,
-  });
+  const _CartQuantityControlsWidget({required this.cartModel, required this.index});
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: 96,
+      height: 34,
+      margin: const EdgeInsets.only(top: 10, right: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withValues(alpha: 0.04),
-        borderRadius: const BorderRadius.only(
-          bottomRight: Radius.circular(Dimensions.paddingSizeExtraSmall),
-          topRight: Radius.circular(Dimensions.paddingSizeExtraSmall),
-        ),
+        color: AsinDesign.softCard(context),
+        borderRadius: BorderRadius.circular(AsinDesign.radius),
+        border: Border.all(color: AsinDesign.line(context)),
       ),
-      //width: 40,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeSmall),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            cartModel?.increment ?? false ? Padding(
-              padding: const EdgeInsets.all(2),
-              child: SizedBox(
-                width: 13, height: 13,
-                child: CircularProgressIndicator(
-                  color: Theme.of(context).primaryColor,
-                  strokeWidth: 2,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          cartModel?.decrement ?? false
+              ? const SizedBox(width: 15, height: 15, child: CircularProgressIndicator(strokeWidth: 2))
+              : CartQuantityButton(
+                  isIncrement: false,
+                  index: index,
+                  quantity: cartModel!.quantity,
+                  maxQty: cartModel!.productInfo!.totalCurrentStock,
+                  cartModel: cartModel,
+                  minimumOrderQuantity: cartModel!.productInfo!.minimumOrderQty,
+                  digitalProduct: cartModel!.productType == 'digital',
                 ),
-              ),
-            ) : CartQuantityButton(
-              index: index,
-              isIncrement: true,
-              quantity: cartModel!.quantity,
-              maxQty: cartModel!.productInfo?.totalCurrentStock,
-              cartModel: cartModel,
-              minimumOrderQuantity: cartModel!.productInfo!.minimumOrderQty,
-              digitalProduct: cartModel!.productType == "digital" ? true : false,
-            ),
-
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeExtraExtraSmall),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: Dimensions.paddingSizeSmall,
-                  vertical: Dimensions.paddingSizeExtraSmall,
+          Text('${cartModel!.quantity}', style: textBold.copyWith(color: AsinDesign.foreground(context), fontSize: 11)),
+          cartModel?.increment ?? false
+              ? const SizedBox(width: 15, height: 15, child: CircularProgressIndicator(strokeWidth: 2))
+              : CartQuantityButton(
+                  index: index,
+                  isIncrement: true,
+                  quantity: cartModel!.quantity,
+                  maxQty: cartModel!.productInfo?.totalCurrentStock,
+                  cartModel: cartModel,
+                  minimumOrderQuantity: cartModel!.productInfo!.minimumOrderQty,
+                  digitalProduct: cartModel!.productType == 'digital',
                 ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor.withValues(alpha: 0.50),
-                  borderRadius: const BorderRadius.all(Radius.circular(Dimensions.radiusSmall)),
-                ),
-                child: Text(
-                  cartModel!.quantity.toString(),
-                  style: textBold.copyWith(color: Theme.of(context).textTheme.bodyLarge?.color)
-                )
-              ),
-            ),
-
-            cartModel?.decrement ?? false ? Padding(
-              padding: const EdgeInsets.all(2.0),
-              child: SizedBox(
-                width: 13,
-                height: 13,
-                child: CircularProgressIndicator(
-                  color: Theme.of(context).primaryColor,
-                  strokeWidth: 2,
-                ),
-              ),
-            ) : CartQuantityButton(
-              isIncrement: false,
-              index: index,
-              quantity: cartModel!.quantity,
-              maxQty: cartModel!.productInfo!.totalCurrentStock,
-              cartModel: cartModel,
-              minimumOrderQuantity: cartModel!.productInfo!.minimumOrderQty,
-              digitalProduct: cartModel!.productType == "digital" ? true : false,
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -319,7 +289,7 @@ class _CartProductDetailsWidget extends StatelessWidget {
               style: textBold.copyWith(
                 color: (cartModel!.shop != null && cartModel?.shop?.vacationStatus != null && cartModel?.shop?.temporaryClose != null && (cartModel!.shop!.temporaryClose! || cartModel!.shop!.vacationStatus!))
                   ? Theme.of(context).hintColor
-                  : Theme.of(context).textTheme.bodyMedium?.color,
+                  : AsinDesign.primary,
                 fontSize: Dimensions.fontSizeDefault,
               ),
             ),
@@ -433,14 +403,14 @@ class _CartProductImageWidget extends StatelessWidget {
         children: [
           Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.10),
-                width: 0.5,
+                color: Theme.of(context).dividerColor.withValues(alpha: .55),
+                width: 1,
               ),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
+              borderRadius: BorderRadius.circular(12),
               child: CustomImageWidget(
                 image: '${cartModel?.productInfo?.thumbnailFullUrl?.path}',
                 height: 60,
@@ -451,7 +421,7 @@ class _CartProductImageWidget extends StatelessWidget {
           if (cartModel!.isProductAvailable! == 0)
             Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
+                borderRadius: BorderRadius.circular(12),
                 color: Colors.black.withValues(alpha: 0.5),
               ),
               height: 70,

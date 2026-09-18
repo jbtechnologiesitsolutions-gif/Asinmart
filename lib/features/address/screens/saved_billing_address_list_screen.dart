@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_app_bar_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/no_internet_screen_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/address/controllers/address_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/features/address/domain/models/address_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/address/widgets/address_shimmer.dart';
 import 'package:flutter_sixvalley_ecommerce/features/checkout/controllers/checkout_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
-import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
-import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
+import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
-import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_app_bar_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/common/basewidget/no_internet_screen_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/features/address/widgets/address_type_widget.dart';
 import 'package:provider/provider.dart';
-
-
-
 
 class SavedBillingAddressListScreen extends StatefulWidget {
   final bool fromGuest;
   const SavedBillingAddressListScreen({super.key, this.fromGuest = false});
+
   @override
   State<SavedBillingAddressListScreen> createState() => _SavedBillingAddressListScreenState();
 }
@@ -27,49 +25,141 @@ class _SavedBillingAddressListScreenState extends State<SavedBillingAddressListS
     Provider.of<AddressController>(context, listen: false).getAddressList();
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => RouterHelper.getAddNewAddressRoute(isBilling: true),
-        backgroundColor: Theme.of(context).textTheme.bodyMedium?.color,
-        child: Icon(Icons.add, color: Theme.of(context).highlightColor)),
-
-      appBar: CustomAppBar(title: getTranslated('BILLING_ADDRESS_LIST', context),),
-
-      body: SafeArea(child: Consumer<AddressController>(
-        builder: (context, locationProvider, child) {
-          return SingleChildScrollView(
-            child: Column(children: [
-              locationProvider.addressList != null? locationProvider.addressList!.isNotEmpty ?
-
-              ListView.builder(physics: const NeverScrollableScrollPhysics(),
-                itemCount: locationProvider.addressList?.length,
-                shrinkWrap: true,
-                itemBuilder: (context, index) {
-                  return InkWell(onTap: () {Provider.of<CheckoutController>(context, listen: false).setBillingAddressIndex(index);
-                    Navigator.pop(context);
-                    },
-                    child: Padding(padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault),
-                      child: Container(margin: const EdgeInsets.only(top: Dimensions.paddingSizeSmall),
-                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(10),
-                          color: Theme.of(context).cardColor,
-                          border: index == Provider.of<CheckoutController>(context).billingAddressIndex ?
-                          Border.all(width: 2, color: Theme.of(context).primaryColor) : null,),
-                        child: AddressTypeWidget(address: locationProvider.addressList?[index]))));}) :
-
-              Padding(padding: EdgeInsets.only(top: MediaQuery.of(context).size.height/3),
-                 child: Center(child: Container(alignment: Alignment.center,
-                     margin: const EdgeInsets.only(bottom: Dimensions.paddingSizeLarge),
-                     child: const NoInternetOrDataScreenWidget(isNoInternet: false,
-                         message: 'no_address_found', icon: Images.noAddress))),
-               ): const  AddressShimmerWidget(),
-              ],
+      backgroundColor: AsinDesign.canvas(context),
+      appBar: const CustomAppBar(title: 'Select Billing Address'),
+      bottomNavigationBar: Consumer<CheckoutController>(
+        builder: (context, checkout, _) => Container(
+          padding: EdgeInsets.fromLTRB(12, 10, 12, MediaQuery.of(context).padding.bottom + 10),
+          decoration: BoxDecoration(color: AsinDesign.card(context), border: Border(top: BorderSide(color: AsinDesign.line(context)))),
+          child: SizedBox(
+            height: 48,
+            child: ElevatedButton(
+              onPressed: checkout.billingAddressIndex == null ? null : () => Navigator.of(context).pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AsinDesign.gold,
+                foregroundColor: AsinDesign.primaryDeep,
+                disabledBackgroundColor: AsinDesign.line(context),
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AsinDesign.radius)),
+              ),
+              child: Text('Use This Address', style: textBold.copyWith(color: AsinDesign.primaryDeep, fontSize: 13)),
             ),
-          );
-        },
-      )),
+          ),
+        ),
+      ),
+      body: SafeArea(
+        child: Consumer<AddressController>(
+          builder: (context, addressController, _) {
+            final addresses = addressController.addressList;
+            if (addresses == null) return const AddressShimmerWidget();
+            if (addresses.isEmpty) {
+              return const Center(child: NoInternetOrDataScreenWidget(isNoInternet: false, message: 'no_address_found', icon: Images.noAddress));
+            }
+            return Consumer<CheckoutController>(
+              builder: (context, checkout, _) => ListView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+                children: [
+                  ...List.generate(addresses.length, (index) {
+                    final address = addresses[index];
+                    final selected = checkout.billingAddressIndex == index;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: _BillingAddressCard(
+                        address: address,
+                        selected: selected,
+                        onTap: () => checkout.setBillingAddressIndex(index),
+                      ),
+                    );
+                  }),
+                  InkWell(
+                    onTap: () => RouterHelper.getAddNewAddressRoute(isBilling: true),
+                    borderRadius: BorderRadius.circular(AsinDesign.radius),
+                    child: Container(
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AsinDesign.card(context),
+                        borderRadius: BorderRadius.circular(AsinDesign.radius),
+                        border: Border.all(color: AsinDesign.gold, width: 1.2),
+                      ),
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.add_rounded, size: 18, color: AsinDesign.primary),
+                          const SizedBox(width: 5),
+                          Text('Add New Address', style: textBold.copyWith(color: AsinDesign.primary, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _BillingAddressCard extends StatelessWidget {
+  final AddressModel address;
+  final bool selected;
+  final VoidCallback onTap;
+  const _BillingAddressCard({required this.address, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final line = [address.address, address.city, address.state, address.zip]
+        .where((e) => e != null && e!.trim().isNotEmpty)
+        .map((e) => e!.trim())
+        .join(', ');
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AsinDesign.radiusLg),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AsinDesign.card(context),
+          borderRadius: BorderRadius.circular(AsinDesign.radiusLg),
+          border: Border.all(color: selected ? AsinDesign.gold : AsinDesign.line(context), width: selected ? 1.6 : 1),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(address.contactPersonName ?? '', style: textBold.copyWith(color: AsinDesign.foreground(context), fontSize: 12.5)),
+                  const SizedBox(height: 5),
+                  Text(line, style: textRegular.copyWith(color: AsinDesign.foreground(context), fontSize: 10.5, height: 1.4)),
+                  if ((address.phone ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text('Phone: ${address.phone}', style: textRegular.copyWith(color: AsinDesign.muted(context), fontSize: 9.5)),
+                  ],
+                ],
+              ),
+            ),
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: selected ? AsinDesign.gold : AsinDesign.muted(context), width: 2),
+                color: selected ? AsinDesign.gold : Colors.transparent,
+              ),
+              child: selected ? const Icon(Icons.check_rounded, size: 13, color: AsinDesign.primaryDeep) : null,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

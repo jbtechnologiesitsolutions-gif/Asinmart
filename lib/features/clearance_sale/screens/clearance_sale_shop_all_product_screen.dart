@@ -104,7 +104,7 @@ class _ClearanceSaleShopProductScreenState extends State<ClearanceSaleShopProduc
                           itemView: RepaintBoundary(
                             child: MasonryGridView.count(
                               itemCount: productModel.products?.length,
-                              crossAxisCount: ResponsiveHelper.isTab(context)? 3: 2,
+                              crossAxisCount: ResponsiveHelper.productGridCount(context),
                               padding: const EdgeInsets.all(0),
                               physics: const NeverScrollableScrollPhysics(),
                               shrinkWrap: true,

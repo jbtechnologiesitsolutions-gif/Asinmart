@@ -4,6 +4,7 @@ import 'package:flutter_sixvalley_ecommerce/features/address/controllers/address
 import 'package:flutter_sixvalley_ecommerce/features/address/widgets/address_shimmer.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
+import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/images.dart';
@@ -43,12 +44,13 @@ class _AddressListScreenState extends State<AddressListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AsinDesign.canvas(context),
       appBar: CustomAppBar(title: getTranslated('addresses', context)),
       floatingActionButton: isScrolledToEnd ? null : FloatingActionButton(
         shape:  RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
         onPressed: () => RouterHelper.getAddNewAddressRoute(isBilling: false),
-        backgroundColor: Theme.of(context).primaryColor,
-        child: Icon(Icons.add, color: Theme.of(context).highlightColor),
+        backgroundColor: AsinDesign.gold,
+        child: const Icon(Icons.add, color: AsinDesign.primaryDeep),
       ),
 
 
@@ -91,8 +93,9 @@ class AddressItemWidget extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(Dimensions.paddingSizeDefault, Dimensions.paddingSizeDefault, Dimensions.paddingSizeDefault, 0),
         child: Container(padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.tertiaryContainer.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(Dimensions.paddingSizeSmall)
+            color: AsinDesign.card(context),
+            border: Border.all(color: AsinDesign.line(context)),
+            borderRadius: BorderRadius.circular(AsinDesign.radius)
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
@@ -173,8 +176,8 @@ class AddressItemWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(Dimensions.paddingSizeExtraSmall),
               decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(Dimensions.paddingSizeExtraSmall),
+                color: AsinDesign.softCard(context),
+                borderRadius: BorderRadius.circular(AsinDesign.radiusSm),
               ),
               child: Row(mainAxisAlignment: MainAxisAlignment.start, crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Icon(Icons.location_on, color: Theme.of(context).hintColor, size: Dimensions.paddingSizeDefault),
