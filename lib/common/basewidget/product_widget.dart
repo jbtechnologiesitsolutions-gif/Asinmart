@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_image_widget.dart';
-import 'package:flutter_sixvalley_ecommerce/common/basewidget/discount_tag_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/controllers/cart_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/domain/models/cart_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product/domain/models/product_model.dart';
@@ -14,11 +13,11 @@ import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/dimensions.dart';
 import 'package:provider/provider.dart';
 
-/// Template-aligned reusable marketplace card.
+/// Compact marketplace product card based on the supplied template.
 ///
-/// It preserves the existing add-to-cart, quantity update, variation routing,
-/// wishlist and multi-image API behavior while matching the supplied dense
-/// two-column commerce template.
+/// Existing product/gallery/cart/wishlist APIs are intentionally preserved.
+/// Products that require a size, colour or variation still open the PDP before
+/// adding so an invalid cart variation is never submitted.
 class ProductWidget extends StatefulWidget {
   final Product productModel;
   final int productNameLine;
@@ -44,6 +43,7 @@ class _ProductWidgetState extends State<ProductWidget> {
   bool _pressed = false;
 
   Product get productModel => widget.productModel;
+  static const Color _actionBlack = Color(0xFF151515);
 
   @override
   void initState() {
@@ -73,9 +73,27 @@ class _ProductWidgetState extends State<ProductWidget> {
 
   bool get _requiresSelection =>
       (productModel.colors?.isNotEmpty ?? false) ||
-      (productModel.choiceOptions?.any((e) => (e.options?.isNotEmpty ?? false)) ?? false) ||
+      (productModel.choiceOptions?.any((e) => (e.options?.any((o) => o.trim().isNotEmpty) ?? false)) ?? false) ||
       (productModel.variation?.isNotEmpty ?? false) ||
       productModel.productType == 'digital';
+
+  double get _effectiveDiscount => (productModel.clearanceSale?.discountAmount ?? 0) > 0
+      ? (productModel.clearanceSale?.discountAmount ?? 0)
+      : (productModel.discount ?? 0);
+
+  String? get _effectiveDiscountType => (productModel.clearanceSale?.discountAmount ?? 0) > 0
+      ? productModel.clearanceSale?.discountType
+      : productModel.discountType;
+
+  bool get _hasDiscount => _effectiveDiscount > 0;
+
+  String _discountLabel() {
+    if (!_hasDiscount) return '';
+    if (_effectiveDiscountType == 'percent') {
+      return '${_effectiveDiscount.toStringAsFixed(0)}% OFF';
+    }
+    return 'OFFER';
+  }
 
   void _openDetails() {
     RouterHelper.getProductDetailsRoute(
@@ -91,6 +109,7 @@ class _ProductWidgetState extends State<ProductWidget> {
       _openDetails();
       return;
     }
+
     setState(() => _adding = true);
     final cart = CartModelBody(
       productId: productModel.id,
@@ -99,6 +118,7 @@ class _ProductWidgetState extends State<ProductWidget> {
       variation: null,
       quantity: productModel.minimumOrderQuantity ?? 1,
     );
+
     try {
       await Provider.of<CartController>(context, listen: false).addToCartAPI(
         cart,
@@ -120,24 +140,27 @@ class _ProductWidgetState extends State<ProductWidget> {
         (item.color ?? '').isEmpty);
   }
 
-  Future<void> _changeCartQuantity(BuildContext context, CartController controller, int index, int delta) async {
+  Future<void> _changeCartQuantity(
+    BuildContext context,
+    CartController controller,
+    int index,
+    int delta,
+  ) async {
     if (index < 0 || index >= controller.cartList.length) return;
     final item = controller.cartList[index];
     final current = item.quantity ?? 1;
     final minimum = item.minimumOrderQuantity ?? productModel.minimumOrderQuantity ?? 1;
     final next = current + delta;
+
     if (delta < 0 && next < minimum) {
       if (item.id != null) await controller.removeFromCartAPI(item.id, index);
       return;
     }
+
     final max = item.maxQuantity;
     if (delta > 0 && max != null && max > 0 && next > max) return;
     await controller.updateCartProductQuantity(item.id, next, context, delta > 0, index);
   }
-
-  bool _hasDiscount() =>
-      (productModel.discount != null && productModel.discount! > 0) ||
-      (productModel.clearanceSale?.discountAmount ?? 0) > 0;
 
   @override
   Widget build(BuildContext context) {
@@ -145,15 +168,12 @@ class _ProductWidgetState extends State<ProductWidget> {
     final rating = (productModel.rating?.isNotEmpty ?? false)
         ? double.tryParse('${productModel.rating?[0].average}') ?? 0
         : 0.0;
+    final brandName = productModel.brand?.name?.trim();
     final salePrice = PriceConverter.convertPrice(
       context,
       productModel.unitPrice,
-      discountType: (productModel.clearanceSale?.discountAmount ?? 0) > 0
-          ? productModel.clearanceSale?.discountType
-          : productModel.discountType,
-      discount: (productModel.clearanceSale?.discountAmount ?? 0) > 0
-          ? productModel.clearanceSale?.discountAmount
-          : productModel.discount,
+      discountType: _effectiveDiscountType,
+      discount: _effectiveDiscount,
     );
     final mrp = PriceConverter.convertPrice(context, productModel.unitPrice);
 
@@ -167,14 +187,14 @@ class _ProductWidgetState extends State<ProductWidget> {
         onTap: _openDetails,
         child: Container(
           margin: EdgeInsets.all(widget.margin ?? Dimensions.paddingSizeExtraSmall),
-          decoration: AsinDesign.cardDecoration(context, radius: AsinDesign.radiusLg),
+          decoration: AsinDesign.cardDecoration(context, radius: 10),
           clipBehavior: Clip.antiAlias,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               AspectRatio(
-                aspectRatio: 1.02,
+                aspectRatio: 1.04,
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -187,7 +207,7 @@ class _ProductWidgetState extends State<ProductWidget> {
                               itemCount: images.length,
                               onPageChanged: (index) => setState(() => _imageIndex = index),
                               itemBuilder: (context, index) => Padding(
-                                padding: const EdgeInsets.all(6),
+                                padding: const EdgeInsets.all(5),
                                 child: CustomImageWidget(
                                   image: images[index],
                                   fit: BoxFit.contain,
@@ -197,37 +217,30 @@ class _ProductWidgetState extends State<ProductWidget> {
                               ),
                             ),
                     ),
-                    if (_hasDiscount())
-                      DiscountTagWidget(
-                        productModel: productModel,
-                        positionedTop: 0,
-                        topLeftBorderRadius: AsinDesign.radiusLg,
-                        bottomRightBorderRadius: AsinDesign.radius,
-                      ),
                     Positioned(
-                      top: 8,
-                      right: 8,
+                      top: 7,
+                      right: 7,
                       child: FavouriteButtonWidget(
                         sellerNavigationModel: widget.sellerNavigationModel,
-                        backgroundColor: AsinDesign.card(context).withValues(alpha: .92),
+                        backgroundColor: AsinDesign.card(context).withValues(alpha: .94),
                         productId: productModel.id,
                       ),
                     ),
                     if (images.length > 1)
                       Positioned(
-                        left: 10,
-                        bottom: 8,
+                        left: 8,
+                        bottom: 7,
                         child: Row(
                           children: List.generate(
                             images.length > 4 ? 4 : images.length,
                             (index) => AnimatedContainer(
                               duration: const Duration(milliseconds: 180),
-                              width: _imageIndex == index ? 11 : 6,
-                              height: 5,
+                              width: _imageIndex == index ? 10 : 6,
+                              height: 6,
                               margin: const EdgeInsets.only(right: 3),
                               decoration: BoxDecoration(
-                                color: _imageIndex == index ? AsinDesign.primary : AsinDesign.border,
-                                borderRadius: BorderRadius.circular(99),
+                                color: _imageIndex == index ? AsinDesign.gold : AsinDesign.border,
+                                shape: BoxShape.circle,
                               ),
                             ),
                           ),
@@ -236,12 +249,18 @@ class _ProductWidgetState extends State<ProductWidget> {
                     if (_outOfStock)
                       Positioned.fill(
                         child: ColoredBox(
-                          color: Colors.black.withValues(alpha: .22),
+                          color: Colors.black.withValues(alpha: .20),
                           child: Center(
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(color: AsinDesign.primaryDeep, borderRadius: BorderRadius.circular(99)),
-                              child: Text(getTranslated('out_of_stock', context) ?? 'Out of stock', style: textBold.copyWith(color: Colors.white, fontSize: 10)),
+                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: AsinDesign.primaryDeep,
+                                borderRadius: BorderRadius.circular(99),
+                              ),
+                              child: Text(
+                                getTranslated('out_of_stock', context) ?? 'Out of stock',
+                                style: textBold.copyWith(color: Colors.white, fontSize: 9.5),
+                              ),
                             ),
                           ),
                         ),
@@ -250,50 +269,87 @@ class _ProductWidgetState extends State<ProductWidget> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 9),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if ((productModel.unit ?? '').trim().isNotEmpty)
-                      Text(
-                        productModel.unit!.trim().toUpperCase(),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: textRegular.copyWith(color: AsinDesign.muted(context), fontSize: 9.5, letterSpacing: .2),
+                    Text(
+                      (brandName?.isNotEmpty ?? false) ? brandName!.toUpperCase() : 'ASINMART',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textBold.copyWith(
+                        color: AsinDesign.primary,
+                        fontSize: 8.5,
+                        letterSpacing: .15,
                       ),
-                    const SizedBox(height: 3),
+                    ),
+                    const SizedBox(height: 2),
                     Text(
                       productModel.name ?? '',
-                      maxLines: widget.productNameLine < 2 ? 2 : widget.productNameLine,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: textMedium.copyWith(color: AsinDesign.foreground(context), fontSize: 12.5, height: 1.2, fontWeight: FontWeight.w600),
+                      style: textBold.copyWith(
+                        color: AsinDesign.foreground(context),
+                        fontSize: 11.5,
+                        height: 1.16,
+                      ),
                     ),
-                    if (rating > 0) ...[
-                      const SizedBox(height: 6),
-                      Row(children: [
-                        const Icon(Icons.star_rounded, color: AsinDesign.star, size: 15),
-                        const SizedBox(width: 2),
-                        Text(rating.toStringAsFixed(1), style: textBold.copyWith(color: AsinDesign.foreground(context), fontSize: 10.5)),
-                        const SizedBox(width: 3),
-                        Text('(${productModel.reviewCount ?? 0})', style: textRegular.copyWith(color: AsinDesign.muted(context), fontSize: 9.5)),
-                      ]),
-                    ],
-                    const SizedBox(height: 6),
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 6,
+                    const SizedBox(height: 5),
+                    Row(
                       children: [
-                        Text(salePrice, style: textBold.copyWith(color: AsinDesign.primary, fontSize: 15.5, fontWeight: FontWeight.w700)),
-                        if (_hasDiscount())
-                          Text(mrp, style: textRegular.copyWith(color: AsinDesign.muted(context), fontSize: 10, decoration: TextDecoration.lineThrough)),
+                        const Icon(Icons.star_outline_rounded, color: AsinDesign.star, size: 14),
+                        const SizedBox(width: 2),
+                        Text(
+                          rating.toStringAsFixed(1),
+                          style: textMedium.copyWith(color: AsinDesign.foreground(context), fontSize: 9.5),
+                        ),
+                        const SizedBox(width: 3),
+                        Flexible(
+                          child: Text(
+                            '(${productModel.reviewCount ?? 0})',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: textRegular.copyWith(color: AsinDesign.muted(context), fontSize: 8.5),
+                          ),
+                        ),
                       ],
                     ),
-                    if (_requiresSelection) ...[
+                    const SizedBox(height: 5),
+                    Wrap(
+                      spacing: 5,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Text(
+                          salePrice,
+                          style: textBold.copyWith(color: AsinDesign.primary, fontSize: 14.5),
+                        ),
+                        if (_hasDiscount)
+                          Text(
+                            mrp,
+                            style: textRegular.copyWith(
+                              color: AsinDesign.muted(context),
+                              fontSize: 9,
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                      ],
+                    ),
+                    if (_hasDiscount) ...[
                       const SizedBox(height: 4),
-                      Text('Choose size / option', maxLines: 1, overflow: TextOverflow.ellipsis, style: textMedium.copyWith(color: AsinDesign.primary, fontSize: 9.5)),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                        decoration: BoxDecoration(
+                          color: AsinDesign.goldSoft,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          _discountLabel(),
+                          style: textBold.copyWith(color: AsinDesign.primary, fontSize: 8.5),
+                        ),
+                      ),
                     ],
-                    const SizedBox(height: 9),
+                    const SizedBox(height: 7),
                     Consumer<CartController>(
                       builder: (context, cartController, _) {
                         final cartIndex = _simpleCartIndex(cartController);
@@ -301,40 +357,67 @@ class _ProductWidgetState extends State<ProductWidget> {
                           final cartItem = cartController.cartList[cartIndex];
                           final busy = cartItem.increment == true || cartItem.decrement == true;
                           return Container(
-                            height: 40,
-                            decoration: BoxDecoration(color: AsinDesign.primary, borderRadius: BorderRadius.circular(AsinDesign.radius)),
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: _actionBlack,
+                              borderRadius: BorderRadius.circular(7),
+                            ),
                             child: busy
-                                ? const Center(child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)))
+                                ? const Center(
+                                    child: SizedBox(
+                                      width: 15,
+                                      height: 15,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                    ),
+                                  )
                                 : Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      InkWell(onTap: () => _changeCartQuantity(context, cartController, cartIndex, -1), child: const SizedBox(width: 40, height: 40, child: Icon(Icons.remove_rounded, color: Colors.white, size: 19))),
-                                      Text('${cartItem.quantity ?? 1}', style: textBold.copyWith(color: Colors.white, fontSize: 13)),
-                                      InkWell(onTap: () => _changeCartQuantity(context, cartController, cartIndex, 1), child: const SizedBox(width: 40, height: 40, child: Icon(Icons.add_rounded, color: Colors.white, size: 19))),
+                                      InkWell(
+                                        onTap: () => _changeCartQuantity(context, cartController, cartIndex, -1),
+                                        child: const SizedBox(width: 36, height: 36, child: Icon(Icons.remove_rounded, color: Colors.white, size: 18)),
+                                      ),
+                                      Text('${cartItem.quantity ?? 1}', style: textBold.copyWith(color: Colors.white, fontSize: 12)),
+                                      InkWell(
+                                        onTap: () => _changeCartQuantity(context, cartController, cartIndex, 1),
+                                        child: const SizedBox(width: 36, height: 36, child: Icon(Icons.add_rounded, color: Colors.white, size: 18)),
+                                      ),
                                     ],
                                   ),
                           );
                         }
+
                         return InkWell(
                           onTap: _outOfStock ? null : () => _onAddPressed(context),
-                          borderRadius: BorderRadius.circular(AsinDesign.radius),
+                          borderRadius: BorderRadius.circular(7),
                           child: Container(
-                            height: 40,
+                            height: 36,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              color: _outOfStock ? AsinDesign.softCard(context) : AsinDesign.primary,
-                              borderRadius: BorderRadius.circular(AsinDesign.radius),
+                              color: _outOfStock ? AsinDesign.softCard(context) : _actionBlack,
+                              borderRadius: BorderRadius.circular(7),
                             ),
                             child: _adding
-                                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                ? const SizedBox(
+                                    width: 15,
+                                    height: 15,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  )
                                 : Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(_requiresSelection ? Icons.tune_rounded : Icons.add_rounded, color: _outOfStock ? AsinDesign.muted(context) : Colors.white, size: 17),
-                                      const SizedBox(width: 5),
+                                      Icon(
+                                        Icons.add_rounded,
+                                        color: _outOfStock ? AsinDesign.muted(context) : Colors.white,
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 4),
                                       Text(
-                                        _outOfStock ? 'Sold Out' : (_requiresSelection ? 'Select Options' : 'Add to Cart'),
-                                        style: textBold.copyWith(color: _outOfStock ? AsinDesign.muted(context) : Colors.white, fontSize: 11.5),
+                                        _outOfStock ? 'Sold Out' : 'Add',
+                                        style: textBold.copyWith(
+                                          color: _outOfStock ? AsinDesign.muted(context) : Colors.white,
+                                          fontSize: 10.5,
+                                        ),
                                       ),
                                     ],
                                   ),

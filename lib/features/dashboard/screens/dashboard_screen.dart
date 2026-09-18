@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/not_logged_in_bottom_sheet_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/controllers/cart_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/screens/cart_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/chat/controllers/chat_controller.dart';
@@ -20,7 +21,8 @@ import 'package:flutter_sixvalley_ecommerce/features/home/screens/aster_theme_ho
 import 'package:flutter_sixvalley_ecommerce/features/home/screens/fashion_theme_home_screen.dart';
 import 'package:flutter_sixvalley_ecommerce/features/home/screens/home_screens.dart';
 import 'package:flutter_sixvalley_ecommerce/features/more/screens/more_screen_view.dart';
-import 'package:flutter_sixvalley_ecommerce/features/shop/screens/all_shop_screen.dart';
+import 'package:flutter_sixvalley_ecommerce/features/order/screens/order_screen.dart';
+import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:provider/provider.dart';
 
 class DashBoardScreen extends StatefulWidget {
@@ -71,7 +73,7 @@ class DashBoardScreenState extends State<DashBoardScreen> {
       _screens = [
         NavigationModel(name: 'home', icon: Images.homeImage, screen: const HomePage()),
         NavigationModel(name: 'CATEGORY', icon: Images.category, screen: const CategoryScreen()),
-        NavigationModel(name: 'stores', icon: Images.storeIcon, screen: const AllTopSellerScreen(title: 'Stores')),
+        NavigationModel(name: 'orders', icon: Images.myOrder, screen: const OrderScreen(isBacButtonExist: false, fromDashboard: true)),
         NavigationModel(name: 'cart', icon: Images.cartArrowDownImage, screen: const CartScreen(showBackButton: false, fromDashboard: true), showCartIcon: true),
         NavigationModel(name: 'profile', icon: Images.moreImage, screen: const MoreScreen()),
       ];
@@ -129,6 +131,21 @@ class DashBoardScreenState extends State<DashBoardScreen> {
 
 
   void _setPage(int pageIndex) {
+    // Orders and account history are authenticated experiences. Keep guest cart
+    // and browsing available, but show the app's existing login sheet instead of
+    // sending a logged-out customer to a blank/protected page.
+    if (pageIndex == 2 && !Provider.of<AuthController>(context, listen: false).isLoggedIn()) {
+      showModalBottomSheet(
+        backgroundColor: Colors.transparent,
+        context: context,
+        builder: (_) => NotLoggedInBottomSheetWidget(
+          fromPage: RouterHelper.dashboardScreen,
+          onLoginSuccess: () { if (mounted) setState(() => _pageIndex = pageIndex); },
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _pageIndex = pageIndex;
     });

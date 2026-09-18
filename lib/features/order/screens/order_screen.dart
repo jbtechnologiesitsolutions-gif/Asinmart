@@ -20,7 +20,8 @@ class OrderScreen extends StatefulWidget {
   final bool isBacButtonExist;
   final bool fromDashboard;
   final bool fromPlaceOrder;
-  const OrderScreen({super.key, this.isBacButtonExist = true, this.fromDashboard = false, this.fromPlaceOrder = false}) ;
+  final int initialIndex;
+  const OrderScreen({super.key, this.isBacButtonExist = true, this.fromDashboard = false, this.fromPlaceOrder = false, this.initialIndex = 0}) ;
 
   @override
   State<OrderScreen> createState() => _OrderScreenState();
@@ -32,8 +33,8 @@ class _OrderScreenState extends State<OrderScreen> {
   @override
   void initState() {
     if(!isGuestMode){
-      Provider.of<OrderController>(context, listen: false).setIndex(0, notify: false);
-      Provider.of<OrderController>(context, listen: false).getOrderList(1,'ongoing');
+      final initial = widget.initialIndex.clamp(0, 2).toInt();
+      Provider.of<OrderController>(context, listen: false).setIndex(initial, notify: false);
     }
     super.initState();
   }

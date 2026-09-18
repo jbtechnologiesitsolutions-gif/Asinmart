@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_image_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/not_logged_in_bottom_sheet_widget.dart';
 import 'package:flutter_sixvalley_ecommerce/features/address/controllers/address_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/cart/controllers/cart_controller.dart';
@@ -155,7 +156,20 @@ class MarketplaceHomeHeader extends StatelessWidget {
                       icon: Icons.notifications_none_rounded,
                       count: notificationCount,
                       badgeColor: const Color(0xFFE63A3A),
-                      onTap: () => RouterHelper.getNotificationRoute(action: RouteAction.push),
+                      onTap: () {
+                        if (loggedIn) {
+                          RouterHelper.getNotificationRoute(action: RouteAction.push);
+                        } else {
+                          showModalBottomSheet(
+                            backgroundColor: Colors.transparent,
+                            context: context,
+                            builder: (_) => NotLoggedInBottomSheetWidget(
+                              fromPage: RouterHelper.dashboardScreen,
+                              onLoginSuccess: () => RouterHelper.getNotificationRoute(action: RouteAction.push),
+                            ),
+                          );
+                        }
+                      },
                     ),
                     const SizedBox(width: 2),
                     _badgeIcon(
@@ -166,9 +180,20 @@ class MarketplaceHomeHeader extends StatelessWidget {
                     ),
                     const SizedBox(width: 5),
                     InkWell(
-                      onTap: () => loggedIn
-                          ? RouterHelper.getProfileScreen1Route(action: RouteAction.push)
-                          : RouterHelper.getLoginRoute(action: RouteAction.push),
+                      onTap: () {
+                        if (loggedIn) {
+                          RouterHelper.getProfileScreen1Route(action: RouteAction.push);
+                        } else {
+                          showModalBottomSheet(
+                            backgroundColor: Colors.transparent,
+                            context: context,
+                            builder: (_) => NotLoggedInBottomSheetWidget(
+                              fromPage: RouterHelper.profileScreen1,
+                              onLoginSuccess: () => RouterHelper.getProfileScreen1Route(action: RouteAction.push),
+                            ),
+                          );
+                        }
+                      },
                       borderRadius: BorderRadius.circular(30),
                       child: Container(
                         width: 31,
@@ -541,7 +566,6 @@ class _HomeQuickCategoryStripState extends State<HomeQuickCategoryStrip> {
             itemCount: visible.length,
             itemBuilder: (context, index) {
               final category = visible[index];
-              final imagePath = category.imageFullUrl?.path?.trim() ?? '';
               return InkWell(
                 onTap: () => RouterHelper.getBrandCategoryRoute(
                   action: RouteAction.push,
@@ -565,9 +589,11 @@ class _HomeQuickCategoryStripState extends State<HomeQuickCategoryStrip> {
                           border: Border.all(color: border),
                         ),
                         clipBehavior: Clip.antiAlias,
-                        child: imagePath.isNotEmpty && imagePath != 'null'
-                            ? CustomImageWidget(image: imagePath, fit: BoxFit.cover)
-                            : Icon(_fallbackIcon(category.name ?? ''), color: dark ? const Color(0xFFF5B82E) : const Color(0xFF063D39), size: 22),
+                        child: Icon(
+                          _fallbackIcon(category.name ?? ''),
+                          color: dark ? const Color(0xFFF5B82E) : const Color(0xFF063D39),
+                          size: 22,
+                        ),
                       ),
                       const SizedBox(height: 3),
                       Text(

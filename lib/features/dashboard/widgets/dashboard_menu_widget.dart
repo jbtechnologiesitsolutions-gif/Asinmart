@@ -25,6 +25,7 @@ class CustomMenuWidget extends StatelessWidget {
     switch (name.toLowerCase()) {
       case 'home': return Icons.home_outlined;
       case 'category': return Icons.grid_view_rounded;
+      case 'orders': return Icons.receipt_long_outlined;
       case 'stores': return Icons.storefront_outlined;
       case 'cart': return Icons.shopping_cart_outlined;
       case 'profile': return Icons.account_circle_outlined;

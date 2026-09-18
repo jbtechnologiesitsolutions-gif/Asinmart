@@ -180,9 +180,14 @@ class _HomePageState extends State<HomePage> {
               ),
 
               const SliverToBoxAdapter(child: FashionBannersWidget()),
-              const SliverToBoxAdapter(child: MarketplaceCoverFlowShowcase()),
-              const SliverToBoxAdapter(child: MarketplaceHomeCategoryCarousels()),
+              const SliverToBoxAdapter(child: TemplateShopByCategory()),
 
+              // Keep the premium website-synchronised Cover Flow directly after
+              // discovery content. Every product-card rail is deliberately placed
+              // below it so the Home hierarchy matches the requested marketplace UI.
+              const SliverToBoxAdapter(child: MarketplaceCoverFlowShowcase()),
+
+              const SliverToBoxAdapter(child: MarketplaceHomeCategoryCarousels()),
               SliverToBoxAdapter(
                 child: TemplateProductRail(
                   title: 'Trending Products',
@@ -207,10 +212,6 @@ class _HomePageState extends State<HomePage> {
                   productsBuilder: (controller) => controller.allProductModel?.products,
                 ),
               ),
-
-              const SliverToBoxAdapter(child: TemplateTopBrands()),
-              const SliverToBoxAdapter(child: TemplateFeaturedStores()),
-
               const SliverToBoxAdapter(child: TemplateRecommendedSpotlight()),
               SliverToBoxAdapter(
                 child: TemplateProductRail(
@@ -221,6 +222,9 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
 
+              const SliverToBoxAdapter(child: TemplateTopBrands()),
+              const SliverToBoxAdapter(child: TemplateVendorPortal()),
+              const SliverToBoxAdapter(child: TemplateFeaturedStores()),
               const SliverToBoxAdapter(child: TemplateWhyShopWithUs()),
               const SliverToBoxAdapter(child: SizedBox(height: 10)),
             ],

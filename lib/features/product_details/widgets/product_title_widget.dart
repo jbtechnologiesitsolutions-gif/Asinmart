@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sixvalley_ecommerce/common/basewidget/custom_directionality_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/common/basewidget/not_logged_in_bottom_sheet_widget.dart';
+import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product_details/controllers/product_details_controller.dart';
 import 'package:flutter_sixvalley_ecommerce/features/product_details/domain/models/product_details_model.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/color_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/price_converter.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/product_helper.dart';
+import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/app_localization.dart';
 import 'package:flutter_sixvalley_ecommerce/theme/asinmart_design_system.dart';
 import 'package:flutter_sixvalley_ecommerce/utill/custom_themes.dart';
@@ -64,9 +67,69 @@ class ProductTitleWidget extends StatelessWidget {
                           style: textBold.copyWith(color: AsinDesign.foreground(context), fontSize: 11.5),
                         ),
                         const SizedBox(width: 5),
-                        Text(
-                          '(${productModel!.reviewsCount ?? 0} Reviews)',
-                          style: textRegular.copyWith(color: AsinDesign.muted(context), fontSize: 10.5),
+                        InkWell(
+                          onTap: () => details.selectReviewSection(!details.isReviewSelected),
+                          borderRadius: BorderRadius.circular(6),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '(${productModel!.reviewsCount ?? 0} Reviews)',
+                                  style: textRegular.copyWith(color: AsinDesign.muted(context), fontSize: 10.5),
+                                ),
+                                const SizedBox(width: 1),
+                                AnimatedRotation(
+                                  duration: const Duration(milliseconds: 180),
+                                  turns: details.isReviewSelected ? .5 : 0,
+                                  child: Icon(Icons.keyboard_arrow_down_rounded, color: AsinDesign.muted(context), size: 15),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(width: 1, height: 12, color: AsinDesign.line(context)),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: InkWell(
+                            onTap: () {
+                              final loggedIn = Provider.of<AuthController>(context, listen: false).isLoggedIn();
+                              if (loggedIn) {
+                                // Reviews are verified against an order by the existing API.
+                                // Open Delivered Orders so the customer can review the
+                                // purchased item through the existing review workflow.
+                                RouterHelper.getOrderScreenRoute(
+                                  action: RouteAction.push,
+                                  initialIndex: 1,
+                                );
+                              } else {
+                                showModalBottomSheet(
+                                  backgroundColor: Colors.transparent,
+                                  context: context,
+                                  builder: (_) => NotLoggedInBottomSheetWidget(
+                                    fromPage: RouterHelper.productDetailsScreen,
+                                    onLoginSuccess: () => RouterHelper.getOrderScreenRoute(
+                                      action: RouteAction.push,
+                                      initialIndex: 1,
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            child: Text(
+                              'Write a Review',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: textBold.copyWith(
+                                color: AsinDesign.primary,
+                                fontSize: 10,
+                                decoration: TextDecoration.underline,
+                                decorationColor: AsinDesign.primary,
+                              ),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -162,8 +225,8 @@ class ProductTitleWidget extends StatelessWidget {
                           borderRadius: BorderRadius.circular(99),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 170),
-                            constraints: const BoxConstraints(minWidth: 42, minHeight: 34),
-                            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+                            constraints: const BoxConstraints(minWidth: 34, minHeight: 28),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
                               color: selected ? AsinDesign.goldSoft : AsinDesign.card(context),
                               borderRadius: BorderRadius.circular(99),
@@ -172,7 +235,7 @@ class ProductTitleWidget extends StatelessWidget {
                             alignment: Alignment.center,
                             child: Text(
                               rawOptions[i].trim(),
-                              style: textBold.copyWith(color: selected ? AsinDesign.primary : AsinDesign.foreground(context), fontSize: 10.5),
+                              style: textMedium.copyWith(color: selected ? AsinDesign.primary : AsinDesign.foreground(context), fontSize: 9.5),
                             ),
                           ),
                         );
@@ -198,9 +261,9 @@ class ProductTitleWidget extends StatelessWidget {
                           children: [
                             AnimatedContainer(
                               duration: const Duration(milliseconds: 170),
-                              width: 27,
-                              height: 27,
-                              padding: const EdgeInsets.all(3),
+                              width: 22,
+                              height: 22,
+                              padding: const EdgeInsets.all(2.5),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(color: selected ? AsinDesign.gold : AsinDesign.line(context), width: selected ? 2 : 1),
@@ -214,7 +277,7 @@ class ProductTitleWidget extends StatelessWidget {
                             ),
                             if (selected) ...[
                               const SizedBox(width: 6),
-                              Text(color.name ?? '', style: textBold.copyWith(color: AsinDesign.foreground(context), fontSize: 10.5)),
+                              Text(color.name ?? '', style: textMedium.copyWith(color: AsinDesign.foreground(context), fontSize: 9.5)),
                             ],
                           ],
                         ),
@@ -268,8 +331,8 @@ class _PdpSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: textBold.copyWith(color: AsinDesign.foreground(context), fontSize: 12.5)),
-          const SizedBox(height: 9),
+          Text(title, style: textBold.copyWith(color: AsinDesign.foreground(context), fontSize: 10.5)),
+          const SizedBox(height: 7),
           child,
         ],
       ),

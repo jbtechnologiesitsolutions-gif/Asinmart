@@ -631,8 +631,8 @@ class RouterHelper {
     return _navigateRoute('$faqScreen$query', route: action);
   }
 
-  static String getOrderScreenRoute({RouteAction? action, bool isBackButtonExist = true, bool fromPlaceOrder = false}) {
-    final params = '?isBackButtonExist=$isBackButtonExist&fromPlaceOrder=$fromPlaceOrder';
+  static String getOrderScreenRoute({RouteAction? action, bool isBackButtonExist = true, bool fromPlaceOrder = false, int initialIndex = 0}) {
+    final params = '?isBackButtonExist=$isBackButtonExist&fromPlaceOrder=$fromPlaceOrder&initialIndex=$initialIndex';
     return _navigateRoute('$orderScreen$params', route: action);
   }
 
@@ -965,7 +965,7 @@ class RouterHelper {
       GoRoute(path: dashboardScreen, builder: (context, state) {
         String? page =  state.uri.queryParameters['page'];
         return DashBoardScreen(
-          pageIndex: page == 'home' ? 0 : page == 'category' ? 1 : page == 'cart' ? 2 : page == 'orders' ? 3 : page == 'more' ? 4 : 0,
+          pageIndex: page == 'home' ? 0 : page == 'category' ? 1 : page == 'orders' ? 2 : page == 'cart' ? 3 : page == 'more' ? 4 : 0,
         );
       }),
       GoRoute(path: loginScreen, builder: (context, state) {
@@ -1403,8 +1403,9 @@ class RouterHelper {
         builder: (context, state) {
           final isBackButtonExist = state.uri.queryParameters['isBackButtonExist'] == 'true';
           final fromPlaceOrder = state.uri.queryParameters['fromPlaceOrder'] == 'true';
+          final initialIndex = int.tryParse(state.uri.queryParameters['initialIndex'] ?? '0') ?? 0;
 
-          return OrderScreen(isBacButtonExist: isBackButtonExist, fromPlaceOrder: fromPlaceOrder);
+          return OrderScreen(isBacButtonExist: isBackButtonExist, fromPlaceOrder: fromPlaceOrder, initialIndex: initialIndex);
         },
       ),
 

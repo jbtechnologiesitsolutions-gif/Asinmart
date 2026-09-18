@@ -564,7 +564,7 @@ class MarketplaceProductSection extends StatelessWidget {
           actionText: 'View all  →',
           onAction: () => RouterHelper.getViewAllProductScreenRoute(productType: productType, action: RouteAction.push),
           child: SizedBox(
-            height: 332,
+            height: 316,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
@@ -572,7 +572,7 @@ class MarketplaceProductSection extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 1),
               separatorBuilder: (_, __) => const SizedBox(width: 7),
               itemBuilder: (context, index) => SizedBox(
-                width: 170,
+                width: 146,
                 child: ProductWidget(productModel: products[index], margin: 0),
               ),
             ),
@@ -659,14 +659,14 @@ class _CategoryProductCarouselState extends State<_CategoryProductCarousel> {
         alignment: Alignment.center,
         children: [
           SizedBox(
-            height: 332,
+            height: 316,
             child: ListView.separated(
               controller: _controller,
               scrollDirection: Axis.horizontal,
               itemCount: products.length,
               padding: const EdgeInsets.symmetric(horizontal: 2),
               separatorBuilder: (_, __) => const SizedBox(width: 7),
-              itemBuilder: (context, index) => SizedBox(width: 170, child: ProductWidget(productModel: products[index], margin: 0)),
+              itemBuilder: (context, index) => SizedBox(width: 146, child: ProductWidget(productModel: products[index], margin: 0)),
             ),
           ),
           Positioned(left: 0, child: _HorizontalArrow(icon: Icons.chevron_left_rounded, onTap: () => _move(-1))),

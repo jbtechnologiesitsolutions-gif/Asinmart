@@ -4,6 +4,7 @@ import 'package:flutter_sixvalley_ecommerce/common/basewidget/show_custom_snakba
 import 'package:flutter_sixvalley_ecommerce/data/model/response_model.dart';
 import 'package:flutter_sixvalley_ecommerce/features/splash/domain/models/config_model.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/number_checker_helper.dart';
+import 'package:flutter_sixvalley_ecommerce/helper/email_checker_helper.dart';
 import 'package:flutter_sixvalley_ecommerce/helper/route_healper.dart';
 import 'package:flutter_sixvalley_ecommerce/localization/language_constrants.dart';
 import 'package:flutter_sixvalley_ecommerce/features/auth/controllers/auth_controller.dart';
@@ -45,7 +46,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
     authProvider.setIsLoading = false;
     authProvider.setIsPhoneVerificationButttonLoading = false;
     authProvider.toggleIsNumberLogin(value: false, isUpdate: false);
-    _countryCode = CountryCode.fromCountryCode(Provider.of<SplashController>(context, listen: false).configModel!.countryCode!).dialCode;
+    _countryCode = CountryCode.fromCountryCode(Provider.of<SplashController>(context, listen: false).configModel?.countryCode ?? 'IN').dialCode;
     super.initState();
   }
 
@@ -82,7 +83,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                       fontWeight: FontWeight.w700,
                   )),
                   const SizedBox(height: 8),
-                  Text(getTranslated('enter_phone_number_for_password_reset', context) ?? 'Enter your registered phone number to recover your account.', style: textRegular.copyWith(
+                  Text('Enter your registered email address or phone number to reset your password.', style: textRegular.copyWith(
                     color: AsinDesign.muted(context),
                     fontSize: 14,
                     height: 1.4,
@@ -121,7 +122,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                         hintText: '',
                         isShowBorder: true,
                         controller: _userInputController,
-                        inputType: TextInputType.number,
+                        inputType: TextInputType.emailAddress,
                         labelText: getTranslated('email/phone', context) ?? 'Email / phone',
                       );
                     },
@@ -136,20 +137,30 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                       if(forgetFormKey.currentState?.validate() ?? false) {
                         if(!(config.emailVerification ?? false) && !(config.phoneVerification ?? false) && config.customerVerification?.phone == 0 && config.customerVerification?.firebase == 0 && config.customerVerification?.email == 0) {
                           showCustomSnackBarWidget(getTranslated('forgot_password_configuration_is_not', context), context, snackBarType: SnackBarType.warning);
-                        } else if (_userInputController!.text.isEmpty) {
-                          showCustomSnackBarWidget(getTranslated('enter_email_or_phone', context), context, snackBarType: SnackBarType.warning);
-                        } else if(!NumberCheckerHelper.isNumber(_userInputController!.text.trim())) {
-                          showCustomSnackBarWidget(getTranslated('enter_phone_number', context), context, snackBarType: SnackBarType.warning);
+                        } else if (_userInputController!.text.trim().isEmpty) {
+                          showCustomSnackBarWidget(getTranslated('enter_email_or_phone', context) ?? 'Enter your email or phone number', context, snackBarType: SnackBarType.warning);
                         } else {
-
                           String userInput = _userInputController!.text.trim();
-                          bool isNumber = NumberCheckerHelper.isNumber(userInput);
+                          final bool isNumber = NumberCheckerHelper.isNumber(userInput);
 
-                          if(isNumber) {
-                            userInput = _countryCode! + userInput;
+                          if (!isNumber && EmailCheckerHelper.isNotValid(userInput)) {
+                            showCustomSnackBarWidget(
+                              getTranslated('enter_valid_email_address', context) ?? 'Enter a valid email address',
+                              context,
+                              snackBarType: SnackBarType.warning,
+                            );
+                            return;
                           }
 
-                          ResponseModel? response =  await authProvider.forgetPassword(config: configModel, phoneOrEmail: userInput, type: isNumber ? 'phone' : 'email');
+                          if (isNumber && !userInput.startsWith('+')) {
+                            userInput = '${_countryCode ?? ''}$userInput';
+                          }
+
+                          ResponseModel? response = await authProvider.forgetPassword(
+                            config: configModel,
+                            phoneOrEmail: userInput,
+                            type: isNumber ? 'phone' : 'email',
+                          );
                           if(response != null && response.isSuccess) {
                             if(isNumber && !authProvider.sendToEmail) {
                               RouterHelper.getVerificationRoute(
@@ -159,7 +170,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                               );
                             } else {
                               if(context.mounted) {
-                                showCustomSnackBarWidget(response.message, context, snackBarType: SnackBarType.warning);
+                                showCustomSnackBarWidget(response.message, context, snackBarType: SnackBarType.success);
                               }
                             }
                           } else if(response != null && !response.isSuccess) {
